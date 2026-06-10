@@ -108,11 +108,16 @@ def map_tabular(
             report.add(
                 IssueLevel.ERROR,
                 f"row dropped: {summarize_errors(error)}",
-                record_index=index,
+                record_index=index,  # source-row index (this row isn't in records)
             )
             continue
 
-        record_sanity_flags(instance, index, report)
+        # Provenance and per-record flags must index into the *compacted* records
+        # list, not the source df, because dropped rows make those diverge.
+        pos = len(records)
+        for p in row_prov:
+            p.record_index = pos
+        record_sanity_flags(instance, pos, report)
         records.append(instance.model_dump(mode="json"))
         provenance.extend(row_prov)
         report.records_ok += 1

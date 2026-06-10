@@ -37,5 +37,6 @@ def extract(raw: bytes, filename: str, target: type[BaseModel]) -> ExtractionRes
     else:
         result = map_document(content, target)
 
+    result.mime = mime
     result.report.add(IssueLevel.INFO, f"detected mime: {mime}")
     return result

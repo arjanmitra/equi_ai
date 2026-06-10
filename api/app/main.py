@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import extract
+from app.db.database import init_db
+from app.routers import extract, funds
 
-app = FastAPI(title="Allocator Memo Builder API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()  # create tables if they don't exist
+    yield
+
+
+app = FastAPI(title="Allocator Memo Builder API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,6 +28,7 @@ app.add_middleware(
 )
 
 app.include_router(extract.router)
+app.include_router(funds.router)
 
 
 @app.get("/health")

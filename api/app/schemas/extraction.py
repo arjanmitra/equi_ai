@@ -73,6 +73,9 @@ class ValidationReport(BaseModel):
 class ExtractionResult(BaseModel):
     source_name: str
     target_schema: str
+    mime: str | None = Field(
+        default=None, description="Detected mime type of the source file."
+    )
     strategy: str = Field(
         description="Which mapping path ran: 'tabular' or 'document'."
     )

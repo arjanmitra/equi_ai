@@ -67,8 +67,10 @@ api/                     FastAPI + extraction engine (Python)
         document.py      direct field extraction
         heuristic.py     offline fallback so the tabular path needs no API key
       engine.py          extract(raw, filename, target) — the one entry point
-    routers/extract.py   POST /extract
-  tests/                 offline end-to-end + transform unit tests
+    db/                  SQLAlchemy: database.py (engine/session), models.py (ORM)
+    services/            persistence.py (ExtractionResult -> rows)
+    routers/             extract.py (ingest+persist), funds.py (read funds/provenance)
+  tests/                 offline end-to-end + transform + persistence tests
 web/                     Next.js (App Router) + Tailwind upload/results UI
 ```
 
@@ -154,10 +156,31 @@ a key is present), so the pytest gate never makes network calls.
 - **XLSX**: first non-empty sheet only; other sheets recorded, not merged.
 - **No auth / multi-user / deployment.**
 
+## Persistence & audit model (done)
+
+Ingestion now persists into SQLite via SQLAlchemy. `POST /extract` writes one
+transaction and returns an `upload_id`:
+
+```
+Upload ─1:N─> SourceFile ─1:N─> Fund ─1:N─> SourceField
+```
+
+- **Fund** mirrors the canonical schema as typed columns (queryable/filterable).
+- **SourceField** is the provenance backbone — one row per extracted value, with
+  both `raw_value` and `normalized_value` and where it came from. This is what
+  the memo's audit trail will link claims back to.
+
+Endpoints: `POST /extract` (ingest + persist), `GET /uploads/{id}`,
+`GET /uploads/{id}/funds`, `GET /funds/{id}/provenance`. DB defaults to
+`sqlite:///./equi_ai.db`; override with `DATABASE_URL` (Postgres-swappable). No
+Alembic yet (scope cut); schema is created on startup. Persistence tests bind
+their own in-memory SQLite, so the suite stays hermetic.
+
 ## Roadmap (next stages of the pipeline)
 
-1. Persist canonical funds + provenance (SQLAlchemy + SQLite).
-2. Mandate form + constraint filtering.
+1. ~~Persist canonical funds + provenance (SQLAlchemy + SQLite).~~ ✓
+2. Mandate form + constraint filtering (hybrid hard/soft; risk constraints
+   modeled but deferred until metrics exist).
 3. Benchmark fetch (yfinance) + risk-free rate (FRED) aligned to fund dates.
 4. Deterministic metrics: vol, max drawdown, Sharpe, correlation (pure + tested).
 5. Memo generation with a claim schema; reject-and-regenerate on ungrounded numbers.

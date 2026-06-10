@@ -8,6 +8,7 @@ pydantic>=2.6
 pandas>=2.2
 numpy>=1.26
 python-dotenv>=1.0   # load api/.env for the API and the scripts
+SQLAlchemy>=2.0      # ORM + persistence (SQLite default, Postgres-swappable)
 
 # Loaders
 openpyxl>=3.1            # xlsx

@@ -8,6 +8,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 export default function Home() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [results, setResults] = useState<ExtractionResult[] | null>(null);
+  const [uploadId, setUploadId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,12 +17,18 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResults(null);
+    setUploadId(null);
     try {
       const form = new FormData();
       Array.from(files).forEach((f) => form.append("files", f));
       const res = await fetch(`${API}/extract`, { method: "POST", body: form });
       if (!res.ok) throw new Error(`API ${res.status}`);
-      setResults((await res.json()) as ExtractionResult[]);
+      const body = (await res.json()) as {
+        upload_id: string;
+        results: ExtractionResult[];
+      };
+      setUploadId(body.upload_id);
+      setResults(body.results);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -56,6 +63,15 @@ export default function Home() {
       </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+      {uploadId && (
+        <p className="mt-4 text-sm text-slate-500">
+          Persisted as upload{" "}
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
+            {uploadId}
+          </code>
+        </p>
+      )}
 
       {results?.map((r, i) => (
         <ResultCard key={i} result={r} />
