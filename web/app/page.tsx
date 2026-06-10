@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { API } from "./constants";
 import { MandateForm } from "./components/MandateForm";
+import { MetricsSection } from "./components/MetricsSection";
 import { RunResults } from "./components/RunResults";
 import { Badge, Tone, format } from "./components/ui";
 import type {
@@ -109,6 +110,8 @@ export default function Home() {
       {results?.map((r, i) => (
         <ResultCard key={i} result={r} />
       ))}
+
+      {uploadId && <MetricsSection uploadId={uploadId} />}
 
       {uploadId && (
         <MandateForm onRun={onRun} loading={runLoading} error={runError} />

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 
 import pytest
@@ -12,6 +13,13 @@ from app.schemas.fund import Fund
 from app.schemas.mandate import MandateSpec
 
 TODAY = date(2024, 1, 1)
+
+
+@dataclass
+class StubMetrics:
+    annualized_volatility: float | None = None
+    max_drawdown: float | None = None
+    low_confidence: bool = False
 
 
 def make_fund(**over) -> Fund:
@@ -99,12 +107,49 @@ def test_track_record_uses_today():
     assert c.status is CheckStatus.FAIL and ev.score == 90.0
 
 
-def test_risk_constraints_are_deferred_na():
+def test_risk_constraints_are_na_without_metrics():
     m = MandateSpec(target_volatility=0.1, max_drawdown=0.2)
-    ev = evaluate(make_fund(), m, today=TODAY)
+    ev = evaluate(make_fund(), m, today=TODAY)  # metrics=None
     vol = _check(ev, ConstraintId.TARGET_VOLATILITY)
     assert vol.status is CheckStatus.NA and "pending metrics" in vol.reason
     assert ev.passed is True  # na never eliminates
+
+
+def test_target_volatility_passes_within_limit():
+    m = MandateSpec(target_volatility=0.10)
+    metrics = StubMetrics(annualized_volatility=0.08)
+    ev = evaluate(make_fund(), m, metrics=metrics, today=TODAY)
+    c = _check(ev, ConstraintId.TARGET_VOLATILITY)
+    assert c.severity is Severity.HARD and c.status is CheckStatus.PASS
+    assert ev.passed is True
+
+
+def test_target_volatility_hard_fails_when_exceeded():
+    m = MandateSpec(target_volatility=0.10)
+    ev = evaluate(make_fund(), m, metrics=StubMetrics(annualized_volatility=0.18), today=TODAY)
+    assert _check(ev, ConstraintId.TARGET_VOLATILITY).status is CheckStatus.FAIL
+    assert ev.passed is False
+
+
+def test_max_drawdown_compares_magnitude():
+    m = MandateSpec(max_drawdown=0.20)
+    # -0.10 drawdown is within a 20% tolerance
+    ok = evaluate(make_fund(), m, metrics=StubMetrics(max_drawdown=-0.10), today=TODAY)
+    assert _check(ok, ConstraintId.MAX_DRAWDOWN).status is CheckStatus.PASS
+    # -0.30 exceeds it -> hard fail
+    bad = evaluate(make_fund(), m, metrics=StubMetrics(max_drawdown=-0.30), today=TODAY)
+    assert _check(bad, ConstraintId.MAX_DRAWDOWN).status is CheckStatus.FAIL
+    assert bad.passed is False
+
+
+def test_low_confidence_metrics_are_not_enforced():
+    m = MandateSpec(target_volatility=0.10)
+    # Vol exceeds the target, but low-confidence -> na, not a hard fail.
+    metrics = StubMetrics(annualized_volatility=0.40, low_confidence=True)
+    ev = evaluate(make_fund(), m, metrics=metrics, today=TODAY)
+    c = _check(ev, ConstraintId.TARGET_VOLATILITY)
+    assert c.status is CheckStatus.NA and "low-confidence" in c.reason
+    assert ev.passed is True
 
 
 def test_score_clamps_and_sums_penalties():

@@ -77,6 +77,9 @@ export interface FundEvaluationOut {
   passed: boolean;
   score: number;
   checks: ConstraintCheck[];
+  sharpe: number | null;
+  annualized_volatility: number | null;
+  max_drawdown: number | null;
 }
 
 export interface RunOut {
@@ -85,4 +88,34 @@ export interface RunOut {
   mandate_id: string;
   created_at: string;
   evaluations: FundEvaluationOut[];
+}
+
+// --- Returns + metrics -----------------------------------------------------
+
+export interface ReturnsIngestResult {
+  source_name: string;
+  shape: string;
+  observations_written: number;
+  matched_funds: string[];
+  unmatched_refs: string[];
+  period_start: string | null;
+  period_end: string | null;
+}
+
+export interface FundMetricsOut {
+  fund_id: string;
+  fund_name: string;
+  business_key: string;
+  benchmark_ticker: string | null;
+  n_obs: number;
+  annualized_volatility: number | null;
+  max_drawdown: number | null;
+  annualized_return: number | null;
+  cumulative_return: number | null;
+  sharpe: number | null;
+  correlation_benchmark: number | null;
+  period_start: string | null;
+  period_end: string | null;
+  low_confidence: boolean;
+  inputs: Record<string, unknown>;
 }

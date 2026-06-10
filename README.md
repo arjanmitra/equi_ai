@@ -69,9 +69,12 @@ api/                     FastAPI + extraction engine (Python)
       engine.py          extract(raw, filename, target) — the one entry point
     db/                  SQLAlchemy: database.py (engine/session), models.py (ORM)
     constraints/engine.py  pure mandate constraint engine (hard/soft/na + scoring)
-    services/            persistence.py, evaluation.py (mandate runs)
-    routers/             extract, funds, mandates, runs
-  tests/                 extraction + transforms + persistence + constraints + runs
+    returns/ingest.py    return-series ingestion (long + wide-by-date -> triples)
+    metrics/functions.py pure metric functions (vol, max DD, CAGR, Sharpe, corr)
+    market/              benchmark/risk-free providers + caching + strategy map
+    services/            persistence.py, evaluation.py, returns.py, metrics.py
+    routers/             extract, funds, mandates, metrics, returns, runs
+  tests/                 extraction + transforms + persistence + constraints + runs + returns
 web/                     Next.js (App Router) + Tailwind upload/results UI
 ```
 
@@ -186,9 +189,10 @@ funds by a pure, deterministic engine — no LLM. Each constraint is classified:
   violation eliminates the fund from the shortlist;
 - **soft** (fee ceilings, strategy preferences, min AUM, min track record) →
   violation subtracts a fixed penalty from a 100-point score;
-- **na** — either the fund is missing the data, or it's a risk constraint
-  (`target_volatility` / `max_drawdown`) that's modeled now but **pending the
-  metrics stage**. `na` never penalizes ("missing != wrong").
+- **na** — the check can't be made: the fund is missing the data, or its risk
+  metrics are low-confidence (< 12 monthly returns). The risk constraints
+  (`target_volatility` / `max_drawdown`) are now **live** against computed
+  `FundMetrics`. `na` never penalizes ("missing != wrong").
 
 Every check carries a human-readable `reason` and the `source_fields` it judged,
 so a verdict like *"strategy 'managed_futures' is excluded by the mandate"* is
@@ -199,12 +203,30 @@ Endpoints: `POST /mandates`, `POST /uploads/{id}/runs` (inline mandate or a
 `mandate_id`), `GET /runs/{id}`. New tables: `Mandate`, `MandateRun`,
 `FundEvaluation`.
 
+## Return-series ingestion (metrics stage, step 1 — done)
+
+Monthly returns are a 1:N time series, so they live in `ReturnObservation`, not
+on `Fund`. A dedicated `POST /uploads/{id}/returns` ingests them and links each
+series to a persisted fund by name. Two shapes are handled, detected
+deterministically (no LLM — date-parsing of headers vs cells):
+
+- **long** — `fund, date, return` rows;
+- **wide-by-date** — one row per fund with date columns (`Jan-23, Feb-23, …`),
+  melted to long.
+
+Returns normalize to decimals (`1.2%`/`1.2` → `0.012`) and periods to the first
+of the month; unmatched series are reported, not fatal; ingestion is idempotent
+(upsert per `(fund, period)`).
+
 ## Roadmap (next stages of the pipeline)
 
 1. ~~Persist canonical funds + provenance (SQLAlchemy + SQLite).~~ ✓
 2. ~~Mandate form + constraint filtering (hybrid hard/soft; risk constraints
    modeled but deferred until metrics exist).~~ ✓
-3. Benchmark fetch (yfinance) + risk-free rate (FRED) aligned to fund dates.
-4. Deterministic metrics: vol, max drawdown, Sharpe, correlation (pure + tested).
-5. Memo generation with a claim schema; reject-and-regenerate on ungrounded numbers.
-6. Audit view: memo prose with inline citations back to a metric or source field.
+3. ~~Metrics stage: return-series ingestion → return-only metrics →
+   benchmark/risk-free providers + Sharpe + correlation → compute pipeline +
+   `FundMetrics` + endpoints → activate the deferred risk constraints.~~ ✓
+   (`target_volatility`/`max_drawdown` now evaluate against computed metrics;
+   low-confidence metrics, < 12 obs, report `na` rather than eliminating.)
+4. Memo generation with a claim schema; reject-and-regenerate on ungrounded numbers.
+5. Audit view: memo prose with inline citations back to a metric or source field.

@@ -28,6 +28,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -108,6 +109,12 @@ class Fund(Base):
     source_fields: Mapped[list[SourceField]] = relationship(
         back_populates="fund", cascade="all, delete-orphan"
     )
+    returns: Mapped[list[ReturnObservation]] = relationship(
+        back_populates="fund", cascade="all, delete-orphan"
+    )
+    metrics: Mapped[FundMetrics | None] = relationship(
+        back_populates="fund", uselist=False, cascade="all, delete-orphan"
+    )
 
 
 class SourceField(Base):
@@ -126,6 +133,62 @@ class SourceField(Base):
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     fund: Mapped[Fund] = relationship(back_populates="source_fields")
+
+
+class ReturnObservation(Base):
+    """One monthly return for one fund (decimal). The metrics stage reads these."""
+
+    __tablename__ = "return_observations"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    fund_id: Mapped[str] = mapped_column(ForeignKey("funds.id"))
+    period: Mapped[date] = mapped_column(Date)  # first of the month
+    value: Mapped[float] = mapped_column(Float)  # decimal monthly return
+
+    fund: Mapped[Fund] = relationship(back_populates="returns")
+
+
+class FundMetrics(Base):
+    """Computed risk/return metrics for one fund (upload-scoped, 1:1 with Fund).
+
+    inputs_json records what the numbers were computed from (n obs, date range,
+    benchmark, risk-free source, rf rate used) so the memo can cite each metric's
+    basis — the audit hook for metrics, mirroring SourceField for raw data."""
+
+    __tablename__ = "fund_metrics"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    fund_id: Mapped[str] = mapped_column(ForeignKey("funds.id"), unique=True)
+    computed_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+    benchmark_ticker: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_obs: Mapped[int] = mapped_column(Integer, default=0)
+    annualized_volatility: Mapped[float | None] = mapped_column(Float, nullable=True)
+    max_drawdown: Mapped[float | None] = mapped_column(Float, nullable=True)
+    annualized_return: Mapped[float | None] = mapped_column(Float, nullable=True)
+    cumulative_return: Mapped[float | None] = mapped_column(Float, nullable=True)
+    sharpe: Mapped[float | None] = mapped_column(Float, nullable=True)
+    correlation_benchmark: Mapped[float | None] = mapped_column(Float, nullable=True)
+    period_start: Mapped[date | None] = mapped_column(Date, nullable=True)
+    period_end: Mapped[date | None] = mapped_column(Date, nullable=True)
+    low_confidence: Mapped[bool] = mapped_column(Boolean, default=False)
+    inputs_json: Mapped[dict] = mapped_column(JSON, default=dict)
+
+    fund: Mapped[Fund] = relationship(back_populates="metrics")
+
+
+class BenchmarkSeries(Base):
+    """Cached monthly market data, keyed by ticker. For an index ticker the
+    value is a monthly return; for the risk-free ticker (DGS3MO) it is the
+    annualized rate as a decimal. Cached so we don't refetch external APIs."""
+
+    __tablename__ = "benchmark_series"
+    __table_args__ = (UniqueConstraint("ticker", "period", name="uq_ticker_period"),)
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    ticker: Mapped[str] = mapped_column(String, index=True)
+    period: Mapped[date] = mapped_column(Date)  # first of the month
+    value: Mapped[float] = mapped_column(Float)
 
 
 class Mandate(Base):

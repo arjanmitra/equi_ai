@@ -77,6 +77,10 @@ class FundEvaluationOut(BaseModel):
     passed: bool
     score: float
     checks: list[ConstraintCheck]
+    # Surfaced from FundMetrics when available (None if metrics not computed).
+    sharpe: float | None = None
+    annualized_volatility: float | None = None
+    max_drawdown: float | None = None
 
 
 class RunOut(BaseModel):

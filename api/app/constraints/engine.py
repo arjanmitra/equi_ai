@@ -226,21 +226,60 @@ def _check_track_record(fund: FundView, m: MandateSpec, today: date) -> Constrai
     )
 
 
-# --- Risk (deferred until metrics exist) ------------------------------------
-def _check_risk_deferred(m: MandateSpec) -> list[ConstraintCheck]:
-    out: list[ConstraintCheck] = []
-    if m.target_volatility is not None:
-        out.append(_na(ConstraintId.TARGET_VOLATILITY, Severity.HARD,
-                       "pending metrics (volatility not yet computed)", [],
-                       threshold=m.target_volatility))
-    if m.max_drawdown is not None:
-        out.append(_na(ConstraintId.MAX_DRAWDOWN, Severity.HARD,
-                       "pending metrics (drawdown not yet computed)", [],
-                       threshold=m.max_drawdown))
-    return out
+# --- Risk (HARD; evaluated against computed metrics, else na) ---------------
+# `metrics` is any object exposing annualized_volatility / max_drawdown /
+# low_confidence (the ORM FundMetrics, or None). Low-confidence metrics (< 12
+# obs) are reported `na` rather than eliminating a fund on an unreliable number.
+def _check_target_vol(mandate: MandateSpec, metrics) -> ConstraintCheck | None:
+    if mandate.target_volatility is None:
+        return None
+    thr, fields = mandate.target_volatility, ["annualized_volatility"]
+    vol = getattr(metrics, "annualized_volatility", None) if metrics else None
+    if vol is None:
+        return _na(ConstraintId.TARGET_VOLATILITY, Severity.HARD,
+                   "pending metrics (volatility not computed)", fields, threshold=thr)
+    if getattr(metrics, "low_confidence", False):
+        return _na(ConstraintId.TARGET_VOLATILITY, Severity.HARD,
+                   f"volatility {vol:.1%} is low-confidence (n<12) — not enforced",
+                   fields, actual=vol, threshold=thr)
+    ok = vol <= thr
+    return ConstraintCheck(
+        constraint=ConstraintId.TARGET_VOLATILITY, severity=Severity.HARD,
+        status=CheckStatus.PASS if ok else CheckStatus.FAIL,
+        actual=vol, threshold=thr, source_fields=fields,
+        reason=(f"volatility {vol:.1%} within the {thr:.1%} target" if ok
+                else f"volatility {vol:.1%} exceeds the {thr:.1%} target"),
+    )
 
 
-def evaluate(fund: FundView, mandate: MandateSpec, today: date | None = None) -> FundEvaluation:
+def _check_max_dd(mandate: MandateSpec, metrics) -> ConstraintCheck | None:
+    if mandate.max_drawdown is None:
+        return None
+    tol, fields = mandate.max_drawdown, ["max_drawdown"]
+    mdd = getattr(metrics, "max_drawdown", None) if metrics else None
+    if mdd is None:
+        return _na(ConstraintId.MAX_DRAWDOWN, Severity.HARD,
+                   "pending metrics (drawdown not computed)", fields, threshold=tol)
+    if getattr(metrics, "low_confidence", False):
+        return _na(ConstraintId.MAX_DRAWDOWN, Severity.HARD,
+                   f"drawdown {mdd:.1%} is low-confidence (n<12) — not enforced",
+                   fields, actual=mdd, threshold=tol)
+    ok = abs(mdd) <= tol
+    return ConstraintCheck(
+        constraint=ConstraintId.MAX_DRAWDOWN, severity=Severity.HARD,
+        status=CheckStatus.PASS if ok else CheckStatus.FAIL,
+        actual=mdd, threshold=tol, source_fields=fields,
+        reason=(f"max drawdown {mdd:.1%} within the {tol:.1%} tolerance" if ok
+                else f"max drawdown {abs(mdd):.1%} exceeds the {tol:.1%} tolerance"),
+    )
+
+
+def evaluate(
+    fund: FundView,
+    mandate: MandateSpec,
+    metrics=None,
+    today: date | None = None,
+) -> FundEvaluation:
     today = today or date.today()
 
     maybe = [
@@ -253,8 +292,10 @@ def evaluate(fund: FundView, mandate: MandateSpec, today: date | None = None) ->
         _check_fee(fund, mandate, ConstraintId.PERFORMANCE_FEE),
         _check_min_aum(fund, mandate),
         _check_track_record(fund, mandate, today),
+        _check_target_vol(mandate, metrics),
+        _check_max_dd(mandate, metrics),
     ]
-    checks = [c for c in maybe if c is not None] + _check_risk_deferred(mandate)
+    checks = [c for c in maybe if c is not None]
 
     passed = not any(
         c.severity is Severity.HARD and c.status is CheckStatus.FAIL for c in checks

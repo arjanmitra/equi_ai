@@ -42,8 +42,9 @@ def run_mandate(
         select(models.Fund).where(models.Fund.upload_id == upload_id)
     ).all()
     for fund in funds:
-        # The engine reads attributes by name, so the ORM Fund works directly.
-        ev = evaluate(fund, spec, today=today)
+        # The engine reads attributes by name, so the ORM Fund + FundMetrics
+        # work directly. Metrics activate the risk constraints (else they're na).
+        ev = evaluate(fund, spec, metrics=fund.metrics, today=today)
         db.add(
             models.FundEvaluation(
                 mandate_run_id=run.id,
@@ -60,19 +61,27 @@ def run_mandate(
 
 
 def serialize_run(run: models.MandateRun) -> RunOut:
-    evaluations = [
-        FundEvaluationOut(
-            fund_id=fe.fund_id,
-            fund_name=fe.fund.name,
-            business_key=fe.fund.business_key,
-            passed=fe.passed,
-            score=fe.score,
-            checks=[ConstraintCheck.model_validate(c) for c in fe.checks_json],
+    evaluations = []
+    for fe in run.evaluations:
+        m = fe.fund.metrics
+        evaluations.append(
+            FundEvaluationOut(
+                fund_id=fe.fund_id,
+                fund_name=fe.fund.name,
+                business_key=fe.fund.business_key,
+                passed=fe.passed,
+                score=fe.score,
+                checks=[ConstraintCheck.model_validate(c) for c in fe.checks_json],
+                sharpe=m.sharpe if m else None,
+                annualized_volatility=m.annualized_volatility if m else None,
+                max_drawdown=m.max_drawdown if m else None,
+            )
         )
-        for fe in run.evaluations
-    ]
-    # Shortlist on top: passed funds first, then by score descending.
-    evaluations.sort(key=lambda e: (e.passed, e.score), reverse=True)
+    # Shortlist on top: passed first, then score, then Sharpe as a tiebreak.
+    evaluations.sort(
+        key=lambda e: (e.passed, e.score, e.sharpe if e.sharpe is not None else float("-inf")),
+        reverse=True,
+    )
     return RunOut(
         id=run.id,
         upload_id=run.upload_id,

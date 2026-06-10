@@ -20,6 +20,10 @@ trafilatura>=1.8        # html boilerplate stripping
 pymupdf4llm>=0.0.17     # native PDF -> markdown (pulls in pymupdf/fitz)
 python-dateutil>=2.9    # robust date parsing
 
+# Market data (live mode only — imported lazily; fixture mode needs neither)
+yfinance>=0.2
+pandas-datareader>=0.10
+
 # LLM
 anthropic>=0.39
 

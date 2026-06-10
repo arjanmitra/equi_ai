@@ -40,6 +40,11 @@ class Settings:
     # The plan is applied deterministically to ALL rows, so this stays small.
     mapping_sample_rows: int = int(os.getenv("MAPPING_SAMPLE_ROWS", "8"))
 
+    # Market data: "fixture" (deterministic synthetic, offline, hermetic) or
+    # "live" (yfinance + FRED). Defaults to fixture so tests and no-network
+    # demos work; set MARKET_DATA=live to fetch real benchmark/risk-free data.
+    market_data_mode: str = os.getenv("MARKET_DATA", "fixture")
+
     @property
     def llm_available(self) -> bool:
         return bool(self.anthropic_api_key)

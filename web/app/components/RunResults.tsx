@@ -1,8 +1,13 @@
 "use client";
 
 import { CONSTRAINT_LABELS } from "../constants";
-import type { CheckStatus, ConstraintCheck, RunOut } from "../types";
-import { Badge, Tone } from "./ui";
+import type {
+  CheckStatus,
+  ConstraintCheck,
+  FundEvaluationOut,
+  RunOut,
+} from "../types";
+import { Badge, Tone, num, pct } from "./ui";
 
 const STATUS_TONE: Record<CheckStatus, Tone> = {
   pass: "green",
@@ -37,6 +42,8 @@ export function RunResults({ run }: { run: RunOut }) {
               <ScoreBar score={e.score} />
             </div>
 
+            <MetricsLine e={e} />
+
             <details className="mt-2 pl-9 text-sm">
               <summary className="cursor-pointer text-slate-500">
                 {e.checks.length} constraint checks
@@ -51,6 +58,18 @@ export function RunResults({ run }: { run: RunOut }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+function MetricsLine({ e }: { e: FundEvaluationOut }) {
+  if (e.sharpe == null && e.annualized_volatility == null && e.max_drawdown == null) {
+    return null;
+  }
+  return (
+    <div className="mt-1 pl-9 text-xs text-slate-400">
+      Sharpe {num(e.sharpe)} · vol {pct(e.annualized_volatility)} · max DD{" "}
+      {pct(e.max_drawdown)}
+    </div>
   );
 }
 
