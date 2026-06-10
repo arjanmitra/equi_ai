@@ -68,9 +68,10 @@ api/                     FastAPI + extraction engine (Python)
         heuristic.py     offline fallback so the tabular path needs no API key
       engine.py          extract(raw, filename, target) — the one entry point
     db/                  SQLAlchemy: database.py (engine/session), models.py (ORM)
-    services/            persistence.py (ExtractionResult -> rows)
-    routers/             extract.py (ingest+persist), funds.py (read funds/provenance)
-  tests/                 offline end-to-end + transform + persistence tests
+    constraints/engine.py  pure mandate constraint engine (hard/soft/na + scoring)
+    services/            persistence.py, evaluation.py (mandate runs)
+    routers/             extract, funds, mandates, runs
+  tests/                 extraction + transforms + persistence + constraints + runs
 web/                     Next.js (App Router) + Tailwind upload/results UI
 ```
 
@@ -176,11 +177,33 @@ Endpoints: `POST /extract` (ingest + persist), `GET /uploads/{id}`,
 Alembic yet (scope cut); schema is created on startup. Persistence tests bind
 their own in-memory SQLite, so the suite stays hermetic.
 
+## Mandate & constraint filter (done)
+
+A **mandate** (the allocator's constraints) is evaluated against an upload's
+funds by a pure, deterministic engine — no LLM. Each constraint is classified:
+
+- **hard** (liquidity requirement, notice, lockup, excluded strategies) →
+  violation eliminates the fund from the shortlist;
+- **soft** (fee ceilings, strategy preferences, min AUM, min track record) →
+  violation subtracts a fixed penalty from a 100-point score;
+- **na** — either the fund is missing the data, or it's a risk constraint
+  (`target_volatility` / `max_drawdown`) that's modeled now but **pending the
+  metrics stage**. `na` never penalizes ("missing != wrong").
+
+Every check carries a human-readable `reason` and the `source_fields` it judged,
+so a verdict like *"strategy 'managed_futures' is excluded by the mandate"* is
+computed and traceable — these become grounded claims in the memo later, never
+LLM inventions. Funds are ranked passed-first, then by score.
+
+Endpoints: `POST /mandates`, `POST /uploads/{id}/runs` (inline mandate or a
+`mandate_id`), `GET /runs/{id}`. New tables: `Mandate`, `MandateRun`,
+`FundEvaluation`.
+
 ## Roadmap (next stages of the pipeline)
 
 1. ~~Persist canonical funds + provenance (SQLAlchemy + SQLite).~~ ✓
-2. Mandate form + constraint filtering (hybrid hard/soft; risk constraints
-   modeled but deferred until metrics exist).
+2. ~~Mandate form + constraint filtering (hybrid hard/soft; risk constraints
+   modeled but deferred until metrics exist).~~ ✓
 3. Benchmark fetch (yfinance) + risk-free rate (FRED) aligned to fund dates.
 4. Deterministic metrics: vol, max drawdown, Sharpe, correlation (pure + tested).
 5. Memo generation with a claim schema; reject-and-regenerate on ungrounded numbers.

@@ -18,7 +18,17 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -45,6 +55,9 @@ class Upload(Base):
         back_populates="upload", cascade="all, delete-orphan"
     )
     funds: Mapped[list[Fund]] = relationship(
+        back_populates="upload", cascade="all, delete-orphan"
+    )
+    runs: Mapped[list[MandateRun]] = relationship(
         back_populates="upload", cascade="all, delete-orphan"
     )
 
@@ -113,3 +126,50 @@ class SourceField(Base):
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     fund: Mapped[Fund] = relationship(back_populates="source_fields")
+
+
+class Mandate(Base):
+    """A reusable set of allocator constraints (the MandateSpec, as JSON)."""
+
+    __tablename__ = "mandates"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    label: Mapped[str | None] = mapped_column(String, nullable=True)
+    spec_json: Mapped[dict] = mapped_column(JSON, default=dict)
+
+    runs: Mapped[list[MandateRun]] = relationship(back_populates="mandate")
+
+
+class MandateRun(Base):
+    """Evaluating one mandate against one upload's funds. The anchor that the
+    metrics + memo stages will attach to."""
+
+    __tablename__ = "mandate_runs"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    upload_id: Mapped[str] = mapped_column(ForeignKey("uploads.id"))
+    mandate_id: Mapped[str] = mapped_column(ForeignKey("mandates.id"))
+
+    upload: Mapped[Upload] = relationship(back_populates="runs")
+    mandate: Mapped[Mandate] = relationship(back_populates="runs")
+    evaluations: Mapped[list[FundEvaluation]] = relationship(
+        back_populates="run", cascade="all, delete-orphan"
+    )
+
+
+class FundEvaluation(Base):
+    """One fund's verdict under one run: pass/fail, score, per-constraint checks."""
+
+    __tablename__ = "fund_evaluations"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    mandate_run_id: Mapped[str] = mapped_column(ForeignKey("mandate_runs.id"))
+    fund_id: Mapped[str] = mapped_column(ForeignKey("funds.id"))
+    passed: Mapped[bool] = mapped_column(Boolean)
+    score: Mapped[float] = mapped_column(Float)
+    checks_json: Mapped[list] = mapped_column(JSON, default=list)
+
+    run: Mapped[MandateRun] = relationship(back_populates="evaluations")
+    fund: Mapped[Fund] = relationship()
