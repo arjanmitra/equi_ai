@@ -37,18 +37,30 @@ transform normalizes it.
 Hard rules:
 - Do NOT transcribe, compute, or invent any data values. Map columns only.
 - Use a source column at most once.
-- Choose a transform from the allowed enum. Pick `percent_to_decimal` for fee or
-  percentage columns, `strip_currency` for money, `parse_date` for dates,
-  `parse_int` for whole-number day/month counts, else `none`.
+- Choose a transform from the allowed enum based on how the VALUES are written:
+  `percent_to_decimal` for '2%' style, `bps_to_decimal` for basis points
+  ('150 bps'), `strip_currency` for money ('$1.2B'), `parse_date` for dates,
+  `parse_int` for whole-number day/month counts, and `none` when the value is
+  already in the target form (e.g. a fee given as the decimal 0.02).
 - Leave a target field unmapped if no column plausibly matches.
 - List every source column you did not map in `unmapped_columns`.
 """
 
 
+def _column_samples(content: TabularContent) -> dict[str, list[str]]:
+    """Column -> a few non-empty sample values, for value-aware transform guess."""
+    rows = content.sample_rows(settings.mapping_sample_rows)
+    return {
+        col: [str(r[col]) for r in rows if r.get(col) not in (None, "")]
+        for col in content.columns
+    }
+
+
 def _get_plan(content: TabularContent, target: type[BaseModel]) -> tuple[MappingPlan, str]:
     """Return (plan, source_label). Falls back to the heuristic when offline."""
+    samples = _column_samples(content)
     if not llm.available:
-        return heuristic_plan(content.columns, target), "heuristic"
+        return heuristic_plan(content.columns, target, samples), "heuristic"
 
     user = (
         f"Target schema fields:\n{specs_as_text(target)}\n\n"
@@ -66,7 +78,7 @@ def _get_plan(content: TabularContent, target: type[BaseModel]) -> tuple[Mapping
         return MappingPlan.model_validate(raw), "llm"
     except Exception:
         # Any LLM/validation failure -> degrade gracefully to the heuristic.
-        return heuristic_plan(content.columns, target), "heuristic-fallback"
+        return heuristic_plan(content.columns, target, samples), "heuristic-fallback"
 
 
 def map_tabular(

@@ -14,9 +14,10 @@ from pydantic import BaseModel, Field
 
 
 class Transform(str, Enum):
-    NONE = "none"  # pass through (string strip)
+    NONE = "none"  # pass through (string strip) — value already in target form
     PERCENT_TO_DECIMAL = "percent_to_decimal"  # "2%" or 2.0 -> 0.02
-    STRIP_CURRENCY = "strip_currency"  # "$1,200,000" -> 1200000.0
+    BPS_TO_DECIMAL = "bps_to_decimal"  # "150 bps" -> 0.015
+    STRIP_CURRENCY = "strip_currency"  # "$1,200,000" / "$1.2B" -> 1200000.0
     PARSE_DATE = "parse_date"  # any common date string -> ISO date
     PARSE_INT = "parse_int"  # "12 days" / "12" -> 12
     PARSE_FLOAT = "parse_float"  # "1,234.5" -> 1234.5

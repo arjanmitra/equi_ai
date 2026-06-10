@@ -53,6 +53,12 @@ def percent_to_decimal(value: Any) -> float:
     return num / 100.0
 
 
+def bps_to_decimal(value: Any) -> float:
+    """Basis points -> decimal. '150 bps' -> 0.015 (1 bp = 0.0001)."""
+    num = _to_number(value)
+    return num / 10_000.0
+
+
 # Magnitude suffixes common in fund data ("$450M", "$2.1B", "$85MM").
 _MAGNITUDE = [("bn", 1e9), ("b", 1e9), ("mm", 1e6), ("m", 1e6), ("k", 1e3), ("t", 1e12)]
 
@@ -92,6 +98,7 @@ def parse_float(value: Any) -> float:
 _TRANSFORMS = {
     Transform.NONE: lambda v: v.strip() if isinstance(v, str) else v,
     Transform.PERCENT_TO_DECIMAL: percent_to_decimal,
+    Transform.BPS_TO_DECIMAL: bps_to_decimal,
     Transform.STRIP_CURRENCY: strip_currency,
     Transform.PARSE_DATE: parse_date,
     Transform.PARSE_INT: parse_int,

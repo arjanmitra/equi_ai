@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Alpha Macro Partners",
+    "strategy": "global_macro",
+    "redemption_frequency": "monthly",
+    "notice_period_days": 30,
+    "lockup_months": 12,
+    "management_fee": 0.02,
+    "performance_fee": 0.2,
+    "aum_usd": 1200000000.0,
+    "inception_date": "2018-01-15",
+    "notes": "Seasoned macro team; stable AUM."
+  },
+  {
+    "name": "Beacon Long/Short Equity",
+    "strategy": "long_short_equity",
+    "redemption_frequency": "quarterly",
+    "notice_period_days": 60,
+    "lockup_months": 24,
+    "management_fee": 0.015,
+    "performance_fee": 0.15,
+    "aum_usd": 450000000.0,
+    "inception_date": "2015-06-01",
+    "notes": "Key-person risk on founder."
+  },
+  {
+    "name": "Cobalt Managed Futures",
+    "strategy": "managed_futures",
+    "redemption_frequency": "monthly",
+    "notice_period_days": 30,
+    "lockup_months": 0,
+    "management_fee": 0.01,
+    "performance_fee": 0.2,
+    "aum_usd": 85000000.0,
+    "inception_date": "2020-03-10",
+    "notes": "Short track record; new strategy."
+  },
+  {
+    "name": "Delta Credit",
+    "strategy": "credit",
+    "redemption_frequency": "quarterly",
+    "notice_period_days": 90,
+    "lockup_months": 12,
+    "management_fee": 0.0175,
+    "performance_fee": 0.175,
+    "aum_usd": 2100000000.0,
+    "inception_date": "2012-09-01",
+    "notes": "Illiquid underlying positions."
+  },
+  {
+    "name": "Echo Multi-Strat",
+    "strategy": "multi_strategy",
+    "redemption_frequency": "monthly",
+    "notice_period_days": 45,
+    "lockup_months": 6,
+    "management_fee": 0.02,
+    "performance_fee": 0.2,
+    "aum_usd": 760000000.0,
+    "inception_date": "2019-11-01",
+    "notes": "Diversified, multi-PM book."
+  },
+  {
+    "name": "Fjord Market Neutral",
+    "strategy": "market_neutral",
+    "redemption_frequency": "monthly",
+    "notice_period_days": 15,
+    "lockup_months": 0,
+    "management_fee": 0.0125,
+    "performance_fee": 0.15,
+    "aum_usd": 320000000.0,
+    "inception_date": "2017-04-01",
+    "notes": "Low net exposure."
+  },
+  {
+    "name": "Granite Event Driven",
+    "strategy": "event_driven",
+    "redemption_frequency": "quarterly",
+    "notice_period_days": 60,
+    "lockup_months": 12,
+    "management_fee": 0.015,
+    "performance_fee": 0.2,
+    "aum_usd": 540000000.0,
+    "inception_date": "2014-02-01",
+    "notes": "Merger-arb concentration."
+  }
+]

@@ -20,6 +20,14 @@ def test_percent_to_decimal(raw, expected):
 
 @pytest.mark.parametrize(
     "raw,expected",
+    [("150 bps", 0.015), ("200bps", 0.02), ("175 bp", 0.0175)],
+)
+def test_bps_to_decimal(raw, expected):
+    assert apply_transform(raw, Transform.BPS_TO_DECIMAL) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
     [
         ("$1,200,000,000", 1_200_000_000.0),
         ("$85,000,000", 85_000_000.0),

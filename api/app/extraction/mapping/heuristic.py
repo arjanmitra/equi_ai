@@ -19,7 +19,8 @@ from app.schemas.mapping import ColumnMap, MappingPlan, Transform
 # Known aliases for the canonical Fund fields. Lowercased, punctuation-stripped.
 _SYNONYMS: dict[str, list[str]] = {
     "fund_id": ["fund id", "id", "ticker", "code", "fund code", "identifier"],
-    "name": ["fund name", "manager", "manager name", "fund", "strategy name"],
+    # Note: bare "fund" was removed — it collided with "Fund ID" columns.
+    "name": ["fund name", "manager", "manager name"],
     "strategy": ["strategy", "style", "approach", "asset class", "sub strategy"],
     "redemption_frequency": ["redemption", "liquidity", "redemption frequency", "dealing"],
     "notice_period_days": ["notice", "notice period", "notice days", "redemption notice"],
@@ -42,9 +43,31 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z0-9 ]", " ", s.lower()).strip()
 
 
-def _guess_transform(target_field: str) -> Transform:
-    if target_field in _FEE_FIELDS:
+def _safe_float(s: str) -> float | None:
+    m = re.search(r"-?\d+(?:\.\d+)?", str(s).replace(",", ""))
+    return float(m.group()) if m else None
+
+
+def _fee_transform(samples: list[str]) -> Transform:
+    """Pick the fee transform from the actual values, not the column name.
+
+    The same fee shows up as '2.00%', '150 bps', or a bare decimal '0.02'
+    across sources, so the name alone cannot disambiguate.
+    """
+    joined = " ".join(samples).lower()
+    if "bp" in joined:  # basis points
+        return Transform.BPS_TO_DECIMAL
+    if "%" in joined:
         return Transform.PERCENT_TO_DECIMAL
+    nums = [abs(v) for v in (_safe_float(s) for s in samples) if v is not None]
+    if nums and max(nums) <= 1.0:  # already decimals (0.02), leave as-is
+        return Transform.NONE
+    return Transform.PERCENT_TO_DECIMAL  # bare percents like "2", "20"
+
+
+def _guess_transform(target_field: str, samples: list[str]) -> Transform:
+    if target_field in _FEE_FIELDS:
+        return _fee_transform(samples)
     if target_field in _DATE_FIELDS:
         return Transform.PARSE_DATE
     if target_field in _INT_FIELDS:
@@ -65,7 +88,14 @@ def _score(ncol: str, candidates: list[str]) -> float:
     return score
 
 
-def heuristic_plan(columns: list[str], target: type[BaseModel]) -> MappingPlan:
+def heuristic_plan(
+    columns: list[str],
+    target: type[BaseModel],
+    samples: dict[str, list[str]] | None = None,
+) -> MappingPlan:
+    """Map columns -> fields offline. `samples` (column -> a few cell values)
+    lets transform selection be value-aware (e.g. fee as % vs bps vs decimal)."""
+    samples = samples or {}
     norm_cols = {col: _norm(col) for col in columns}
 
     # Score every (field, column) pair, then assign greedily by descending
@@ -92,7 +122,7 @@ def heuristic_plan(columns: list[str], target: type[BaseModel]) -> MappingPlan:
             ColumnMap(
                 target_field=field,
                 source_column=col,
-                transform=_guess_transform(field),
+                transform=_guess_transform(field, samples.get(col, [])),
                 confidence=round(s, 2),
                 reasoning="heuristic match (offline, no LLM)",
             )

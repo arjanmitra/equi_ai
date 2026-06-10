@@ -1,0 +1,73 @@
+[
+  {
+    "file": "universe_clean.csv",
+    "kind": "csv",
+    "offline": true,
+    "records": 7,
+    "funds": [
+      "Alpha Macro Partners",
+      "Beacon Long/Short Equity",
+      "Cobalt Managed Futures",
+      "Delta Credit",
+      "Echo Multi-Strat",
+      "Fjord Market Neutral",
+      "Granite Event Driven"
+    ]
+  },
+  {
+    "file": "universe_messy.csv",
+    "kind": "csv",
+    "offline": true,
+    "records": 7,
+    "funds": [
+      "Alpha Macro Partners",
+      "Beacon Long/Short Equity",
+      "Cobalt Managed Futures",
+      "Delta Credit",
+      "Echo Multi-Strat",
+      "Fjord Market Neutral",
+      "Granite Event Driven"
+    ]
+  },
+  {
+    "file": "managers.xlsx",
+    "kind": "xlsx",
+    "offline": true,
+    "records": 4,
+    "funds": [
+      "Alpha Macro Partners",
+      "Beacon Long/Short Equity",
+      "Cobalt Managed Futures",
+      "Delta Credit"
+    ]
+  },
+  {
+    "file": "manager_email.html",
+    "kind": "html",
+    "offline": true,
+    "records": 3,
+    "funds": [
+      "Alpha Macro Partners",
+      "Beacon Long/Short Equity",
+      "Cobalt Managed Futures"
+    ]
+  },
+  {
+    "file": "factsheet_alpha.pdf",
+    "kind": "pdf",
+    "offline": false,
+    "records": 1,
+    "funds": [
+      "Alpha Macro Partners"
+    ]
+  },
+  {
+    "file": "factsheet_beacon.pdf",
+    "kind": "pdf",
+    "offline": false,
+    "records": 1,
+    "funds": [
+      "Beacon Long/Short Equity"
+    ]
+  }
+]

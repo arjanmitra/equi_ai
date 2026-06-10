@@ -104,8 +104,40 @@ parsed, dates anchored, `fund_id` auto-derived, and full provenance.
 ### Tests
 
 ```bash
-cd api && .venv/bin/python -m pytest
+cd api && .venv/bin/python -m pytest      # 30 tests, all offline
 ```
+
+## Sample-data corpus (proving format-agnosticism)
+
+One set of ground-truth funds, emitted in five deliberately-inconsistent shapes
+— different column names, orders, delimiters, fee conventions (`2%` vs `150 bps`
+vs bare `0.02`), AUM conventions (`$1.2B` vs `$1200M` vs full integer), date
+formats, missing values, junk columns, and file types.
+
+```bash
+cd api
+.venv/bin/python scripts/generate_corpus.py     # -> sample_data/
+.venv/bin/python scripts/evaluate_corpus.py     # scores extraction vs ground truth
+```
+
+```
+file                     records  precision  coverage
+-----------------------------------------------------
+universe_clean.csv             7      100%      100%
+universe_messy.csv             7      100%       96%   # withholds some values
+managers.xlsx                  4      100%      100%
+manager_email.html             3      100%       75%   # carries a subset of fields
+factsheet_*.pdf                —      (needs API key)  # document path
+```
+
+- **precision** = of the values it extracted, how many are correct (the
+  reliability headline — 100% across all offline formats).
+- **coverage** = how much of the schema it recovered; it drops legitimately when
+  a source simply omits a field. "Missing ≠ wrong."
+
+The two PDF factsheets are native-text PDFs that exercise the document path; they
+need an `ANTHROPIC_API_KEY` to read field values. `tests/test_corpus.py` runs the
+whole generate→extract→score loop as a regression on every offline format.
 
 ## Deliberate scope cuts (to revisit)
 
