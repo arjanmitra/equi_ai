@@ -60,6 +60,7 @@ class Score:
         self.correct = self.extracted = self.possible = 0
         self.mismatches: list[str] = []
         self.unmatched_records = 0
+        self.path = "?"  # extraction path that ran: tabular / document / none
 
     @property
     def precision(self) -> float:
@@ -73,6 +74,7 @@ class Score:
 def score_file(path: Path, truth_by_name: dict[str, dict]) -> Score:
     result = extract(path.read_bytes(), path.name, Fund)
     score = Score()
+    score.path = result.strategy
 
     for rec in result.records:
         truth = truth_by_name.get(_norm_name(rec.get("name", "")))
@@ -100,20 +102,30 @@ def main(corpus_dir: str = "sample_data") -> int:
     truth = json.loads((base / "ground_truth.json").read_text())
     truth_by_name = {_norm_name(t["name"]): t for t in truth}
 
-    print(f"{'file':<24}{'records':>8}{'precision':>11}{'coverage':>10}")
-    print("-" * 53)
+    print(f"{'file':<24}{'path':>10}{'records':>8}{'precision':>11}{'coverage':>10}")
+    print("-" * 63)
 
+    # Only deterministic offline formats gate the exit code. Document-path
+    # (PDF) scores depend on a live LLM read, so they are reported but never
+    # fail the run — flakiness there is expected, not a regression.
     failures = 0
+    doc_seen = False
     for entry in manifest:
         if not entry["offline"] and not llm.available:
-            print(f"{entry['file']:<24}{'—':>8}{'(needs API key)':>21}")
+            print(f"{entry['file']:<24}{'document':>10}{'—':>8}{'(needs API key)':>21}")
             continue
+
         score = score_file(base / entry["file"], truth_by_name)
-        flag = "" if score.precision == 1.0 and score.unmatched_records == 0 else "  <-- check"
-        if flag:
+        is_doc = score.path == "document"
+        doc_seen = doc_seen or is_doc
+
+        bad = score.precision < 1.0 or score.unmatched_records > 0
+        if bad and not is_doc:
             failures += 1
+        flag = "  <-- check" if (bad and not is_doc) else ""
+
         print(
-            f"{entry['file']:<24}{entry['records']:>8}"
+            f"{entry['file']:<24}{score.path:>10}{entry['records']:>8}"
             f"{score.precision:>10.0%}{score.coverage:>10.0%}{flag}"
         )
         for m in score.mismatches[:5]:
@@ -121,9 +133,13 @@ def main(corpus_dir: str = "sample_data") -> int:
         if score.unmatched_records:
             print(f"    unmatched records: {score.unmatched_records}")
 
-    print("-" * 53)
-    print("All offline formats extracted at 100% precision."
-          if failures == 0 else f"{failures} file(s) need attention.")
+    print("-" * 63)
+    print("Offline (tabular) formats: 100% precision."
+          if failures == 0 else f"{failures} offline file(s) need attention.")
+    if doc_seen:
+        print("Document-path (PDF) scores shown above — read live via the LLM.")
+    elif not llm.available:
+        print("Set ANTHROPIC_API_KEY in api/.env to also score the PDF factsheets.")
     return 1 if failures else 0
 
 

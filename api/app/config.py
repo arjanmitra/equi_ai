@@ -9,6 +9,17 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load a .env before any os.getenv below runs. We check the repo root first
+# (where the project's .env lives) and api/ as a fallback. A missing file is a
+# no-op, so offline/CI behavior is unchanged. This makes the key visible to both
+# `uvicorn` and the standalone scripts. override=False -> real env vars win.
+_API_DIR = Path(__file__).resolve().parents[1]
+for _candidate in (_API_DIR.parent / ".env", _API_DIR / ".env"):
+    load_dotenv(_candidate, override=False)
 
 
 @dataclass(frozen=True)

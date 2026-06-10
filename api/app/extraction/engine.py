@@ -1,4 +1,4 @@
-"""The extraction orchestrator — the single entry point both apps would call.
+"""The extraction orchestrator.
 
     extract(raw, filename, target) -> ExtractionResult
 

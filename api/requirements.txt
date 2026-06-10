@@ -7,6 +7,7 @@ python-multipart>=0.0.9
 pydantic>=2.6
 pandas>=2.2
 numpy>=1.26
+python-dotenv>=1.0   # load api/.env for the API and the scripts
 
 # Loaders
 openpyxl>=3.1            # xlsx

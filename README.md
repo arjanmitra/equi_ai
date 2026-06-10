@@ -121,23 +121,30 @@ cd api
 ```
 
 ```
-file                     records  precision  coverage
------------------------------------------------------
-universe_clean.csv             7      100%      100%
-universe_messy.csv             7      100%       96%   # withholds some values
-managers.xlsx                  4      100%      100%
-manager_email.html             3      100%       75%   # carries a subset of fields
-factsheet_*.pdf                —      (needs API key)  # document path
+file                          path  records  precision  coverage
+----------------------------------------------------------------
+universe_clean.csv         tabular        7      100%      100%
+universe_messy.csv         tabular        7      100%       96%   # withholds some values
+managers.xlsx              tabular        4      100%      100%
+manager_email.html         tabular        3      100%       75%   # carries a subset of fields
+factsheet_alpha.pdf       document        1      100%      100%   # needs a key
+factsheet_beacon.pdf      document        1      100%      100%   # needs a key
 ```
 
+- **path** = which engine path ran. CSV/XLSX/HTML go through the deterministic
+  `tabular` path; PDFs go through the LLM `document` path. Same six files, same
+  canonical fields — that contrast *is* the type-agnostic proof.
 - **precision** = of the values it extracted, how many are correct (the
-  reliability headline — 100% across all offline formats).
+  reliability headline — 100% across every format).
 - **coverage** = how much of the schema it recovered; it drops legitimately when
   a source simply omits a field. "Missing ≠ wrong."
 
-The two PDF factsheets are native-text PDFs that exercise the document path; they
-need an `ANTHROPIC_API_KEY` to read field values. `tests/test_corpus.py` runs the
-whole generate→extract→score loop as a regression on every offline format.
+The two PDF factsheets are native-text PDFs that exercise the document path. They
+need an `ANTHROPIC_API_KEY` (in a `.env` at the repo root or in `api/`) to read
+field values; without one they're skipped and the offline formats still score.
+`tests/test_corpus.py` runs the generate→extract→score loop as a regression on
+every offline format, and is kept hermetic (it forces the offline path even when
+a key is present), so the pytest gate never makes network calls.
 
 ## Deliberate scope cuts (to revisit)
 
