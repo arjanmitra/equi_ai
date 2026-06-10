@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import type { ExtractionResult, FieldProvenance, IssueLevel } from "./types";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+import { API } from "./constants";
+import { MandateForm } from "./components/MandateForm";
+import { RunResults } from "./components/RunResults";
+import { Badge, Tone, format } from "./components/ui";
+import type {
+  ExtractionResult,
+  FieldProvenance,
+  IssueLevel,
+  MandateSpec,
+  RunOut,
+} from "./types";
 
 export default function Home() {
   const [files, setFiles] = useState<FileList | null>(null);
@@ -12,12 +20,17 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [run, setRun] = useState<RunOut | null>(null);
+  const [runLoading, setRunLoading] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
+
   async function onExtract() {
     if (!files?.length) return;
     setLoading(true);
     setError(null);
     setResults(null);
     setUploadId(null);
+    setRun(null);
     try {
       const form = new FormData();
       Array.from(files).forEach((f) => form.append("files", f));
@@ -36,13 +49,33 @@ export default function Home() {
     }
   }
 
+  async function onRun(spec: MandateSpec) {
+    if (!uploadId) return;
+    setRunLoading(true);
+    setRunError(null);
+    setRun(null);
+    try {
+      const res = await fetch(`${API}/uploads/${uploadId}/runs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mandate: spec }),
+      });
+      if (!res.ok) throw new Error(`API ${res.status}`);
+      setRun((await res.json()) as RunOut);
+    } catch (e) {
+      setRunError(e instanceof Error ? e.message : "Evaluation failed");
+    } finally {
+      setRunLoading(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <h1 className="text-2xl font-semibold">Allocator Memo Builder</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Step 1 — Upload a messy fund universe (CSV / XLSX / HTML / PDF). The
-        engine maps any format onto the canonical fund schema and reports what it
-        cleaned.
+        Upload a messy fund universe, set a mandate, and get a defendable,
+        ranked shortlist — every verdict traced to a computed check or source
+        field.
       </p>
 
       <div className="mt-6 flex items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white p-5">
@@ -76,6 +109,12 @@ export default function Home() {
       {results?.map((r, i) => (
         <ResultCard key={i} result={r} />
       ))}
+
+      {uploadId && (
+        <MandateForm onRun={onRun} loading={runLoading} error={runError} />
+      )}
+
+      {run && <RunResults run={run} />}
     </main>
   );
 }
@@ -198,33 +237,8 @@ function ProvenancePanel({ provenance }: { provenance: FieldProvenance[] }) {
   );
 }
 
-function Badge({
-  children,
-  tone,
-}: {
-  children: React.ReactNode;
-  tone: "slate" | "green" | "red" | "amber";
-}) {
-  const tones: Record<string, string> = {
-    slate: "bg-slate-100 text-slate-700",
-    green: "bg-green-100 text-green-700",
-    red: "bg-red-100 text-red-700",
-    amber: "bg-amber-100 text-amber-700",
-  };
-  return (
-    <span className={`rounded px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>
-      {children}
-    </span>
-  );
-}
-
-function toneFor(level: IssueLevel): "slate" | "green" | "red" | "amber" {
+function toneFor(level: IssueLevel): Tone {
   if (level === "error") return "red";
   if (level === "flag") return "amber";
   return "slate";
-}
-
-function format(v: unknown): string {
-  if (v === null || v === undefined) return "—";
-  return String(v);
 }

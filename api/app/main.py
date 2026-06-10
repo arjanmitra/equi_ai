@@ -22,7 +22,8 @@ app = FastAPI(title="Allocator Memo Builder API", version="0.1.0", lifespan=life
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    # Any localhost port — the Next dev server may land on 3000, 3001, ...
+    allow_origin_regex=r"http://localhost:\d+",
     allow_methods=["*"],
     allow_headers=["*"],
 )
