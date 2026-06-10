@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { API } from "./constants";
 import { MandateForm } from "./components/MandateForm";
+import { MemoPanel } from "./components/MemoPanel";
 import { MetricsSection } from "./components/MetricsSection";
 import { RunResults } from "./components/RunResults";
 import { Badge, Tone, format } from "./components/ui";
@@ -118,6 +119,8 @@ export default function Home() {
       )}
 
       {run && <RunResults run={run} />}
+
+      {run && <MemoPanel runId={run.id} />}
     </main>
   );
 }

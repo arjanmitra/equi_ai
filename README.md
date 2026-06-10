@@ -72,8 +72,9 @@ api/                     FastAPI + extraction engine (Python)
     returns/ingest.py    return-series ingestion (long + wide-by-date -> triples)
     metrics/functions.py pure metric functions (vol, max DD, CAGR, Sharpe, corr)
     market/              benchmark/risk-free providers + caching + strategy map
-    services/            persistence.py, evaluation.py, returns.py, metrics.py
-    routers/             extract, funds, mandates, metrics, returns, runs
+    memo/                catalog, numbers, verify, generate (LLM + verifier loop)
+    services/            persistence, evaluation, returns, metrics, memo
+    routers/             extract, funds, mandates, memo, metrics, returns, runs
   tests/                 extraction + transforms + persistence + constraints + runs + returns
 web/                     Next.js (App Router) + Tailwind upload/results UI
 ```
@@ -228,5 +229,17 @@ of the month; unmatched series are reported, not fatal; ingestion is idempotent
    `FundMetrics` + endpoints → activate the deferred risk constraints.~~ ✓
    (`target_volatility`/`max_drawdown` now evaluate against computed metrics;
    low-confidence metrics, < 12 obs, report `na` rather than eliminating.)
-4. Memo generation with a claim schema; reject-and-regenerate on ungrounded numbers.
-5. Audit view: memo prose with inline citations back to a metric or source field.
+4. IC-memo stage (write-then-verify grounding; ungrounded claims flagged):
+   ~~grounding catalog (facts + stable citation IDs)~~ ✓ → ~~claim schema +
+   numeric-grounding verifier~~ ✓ → ~~LLM generation with reject-and-regenerate
+   (catalog→prompt, structured `MemoDraft`, verify, re-prompt on ungrounded
+   numbers, flag survivors)~~ ✓ → ~~`Memo`/`MemoSection`/`MemoClaim` persistence
+   + endpoints (`POST /runs/{id}/memo`, `GET /memos/{id}` with resolved
+   citations + appendix)~~ ✓ → ~~audit view (memo reader with clickable
+   citation chips → backing metric/source field, flagged claims, appendix) +
+   PDF/DOCX export (`GET /memos/{id}/export?format=…`)~~ ✓
+
+**The full pipeline is now built end-to-end:** messy files (any format) → canonical
+funds + returns → computed metrics → mandate evaluation → ranked shortlist → a
+verified IC memo where every claim traces, one click, back to a computed metric
+or the source column it came from.

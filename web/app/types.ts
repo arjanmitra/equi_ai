@@ -102,6 +102,58 @@ export interface ReturnsIngestResult {
   period_end: string | null;
 }
 
+// --- Memo + audit ----------------------------------------------------------
+
+export interface Fact {
+  id: string;
+  kind: string;
+  name: string;
+  label: string;
+  value: unknown;
+  display: string;
+  fund_id: string | null;
+  provenance: string | null;
+  extra: Record<string, unknown>;
+}
+
+export interface FundFacts {
+  fund_id: string;
+  fund_name: string;
+  business_key: string;
+  rank: number;
+  passed: boolean;
+  score: number;
+  fields: Fact[];
+  metrics: Fact[];
+  checks: Fact[];
+}
+
+export interface MemoClaimOut {
+  id: string;
+  text: string;
+  refs: string[];
+  verified: boolean;
+  issues: string[];
+}
+
+export interface MemoSectionOut {
+  kind: string;
+  title: string;
+  claims: MemoClaimOut[];
+}
+
+export interface MemoOut {
+  id: string;
+  run_id: string;
+  created_at: string;
+  model: string;
+  all_verified: boolean;
+  log: string[];
+  sections: MemoSectionOut[];
+  facts: Record<string, Fact>;
+  appendix: FundFacts[];
+}
+
 export interface FundMetricsOut {
   fund_id: string;
   fund_name: string;

@@ -220,6 +220,9 @@ class MandateRun(Base):
     evaluations: Mapped[list[FundEvaluation]] = relationship(
         back_populates="run", cascade="all, delete-orphan"
     )
+    memos: Mapped[list[Memo]] = relationship(
+        back_populates="run", cascade="all, delete-orphan"
+    )
 
 
 class FundEvaluation(Base):
@@ -236,3 +239,52 @@ class FundEvaluation(Base):
 
     run: Mapped[MandateRun] = relationship(back_populates="evaluations")
     fund: Mapped[Fund] = relationship()
+
+
+class Memo(Base):
+    """A generated, verified IC memo for one mandate run."""
+
+    __tablename__ = "memos"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    mandate_run_id: Mapped[str] = mapped_column(ForeignKey("mandate_runs.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    model: Mapped[str] = mapped_column(String)
+    all_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    log_json: Mapped[list] = mapped_column(JSON, default=list)
+
+    run: Mapped[MandateRun] = relationship(back_populates="memos")
+    sections: Mapped[list[MemoSection]] = relationship(
+        back_populates="memo", cascade="all, delete-orphan"
+    )
+
+
+class MemoSection(Base):
+    __tablename__ = "memo_sections"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    memo_id: Mapped[str] = mapped_column(ForeignKey("memos.id"))
+    kind: Mapped[str] = mapped_column(String)
+    title: Mapped[str] = mapped_column(String)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+
+    memo: Mapped[Memo] = relationship(back_populates="sections")
+    claims: Mapped[list[MemoClaim]] = relationship(
+        back_populates="section", cascade="all, delete-orphan"
+    )
+
+
+class MemoClaim(Base):
+    """One claim: prose + the fact IDs it cites + its verification verdict."""
+
+    __tablename__ = "memo_claims"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    section_id: Mapped[str] = mapped_column(ForeignKey("memo_sections.id"))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    text: Mapped[str] = mapped_column(Text)
+    refs_json: Mapped[list] = mapped_column(JSON, default=list)
+    verified: Mapped[bool] = mapped_column(Boolean, default=True)
+    issues_json: Mapped[list] = mapped_column(JSON, default=list)
+
+    section: Mapped[MemoSection] = relationship(back_populates="claims")
