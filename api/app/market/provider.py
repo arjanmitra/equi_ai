@@ -61,8 +61,13 @@ class FixtureProvider:
         return out
 
 
+_FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
+
+
 class LiveProvider:
-    """Real data. yfinance + FRED imported lazily (only needed in live mode)."""
+    """Real data. yfinance for indices; FRED's public CSV for the risk-free rate
+    (fetched via requests so it uses certifi's CA bundle — macOS stdlib SSL can't
+    verify FRED otherwise). Heavy deps are imported lazily (live mode only)."""
 
     def index_monthly_returns(self, ticker: str, start: date, end: date) -> dict[date, float]:
         import yfinance as yf
@@ -71,15 +76,31 @@ class LiveProvider:
             ticker, start=start, end=end, interval="1mo",
             auto_adjust=True, progress=False,
         )
-        closes = df["Close"].dropna()
-        rets = closes.pct_change().dropna()
+        if df.empty:
+            return {}
+        closes = df["Close"]
+        # yfinance returns MultiIndex columns even for a single ticker -> df.
+        if hasattr(closes, "columns"):
+            closes = closes.iloc[:, 0]
+        rets = closes.dropna().pct_change().dropna()
         return {date(d.year, d.month, 1): float(v) for d, v in rets.items()}
 
     def risk_free_monthly(self, start: date, end: date) -> dict[date, float]:
-        from pandas_datareader import data as pdr
+        import io
 
-        series = pdr.DataReader(RISK_FREE_TICKER, "fred", start, end)[RISK_FREE_TICKER]
-        monthly = series.dropna().resample("MS").mean() / 100.0  # % -> decimal
+        import pandas as pd
+        import requests
+
+        params = {"id": RISK_FREE_TICKER, "cosd": f"{start:%Y-%m-%d}", "coed": f"{end:%Y-%m-%d}"}
+        resp = requests.get(_FRED_CSV, params=params, timeout=30)
+        resp.raise_for_status()
+
+        df = pd.read_csv(io.StringIO(resp.text))
+        df.columns = ["date", "rate"]  # observation_date, DGS3MO
+        df["date"] = pd.to_datetime(df["date"])
+        df["rate"] = pd.to_numeric(df["rate"], errors="coerce")  # "." -> NaN
+        df = df.dropna().set_index("date")
+        monthly = df["rate"].resample("MS").mean() / 100.0  # annualized % -> decimal
         return {date(d.year, d.month, 1): float(v) for d, v in monthly.items()}
 
 

@@ -20,9 +20,11 @@ trafilatura>=1.8        # html boilerplate stripping
 pymupdf4llm>=0.0.17     # native PDF -> markdown (pulls in pymupdf/fitz)
 python-dateutil>=2.9    # robust date parsing
 
-# Market data (live mode only — imported lazily; fixture mode needs neither)
+# Market data (live mode only — imported lazily; fixture mode needs neither).
+# FRED is fetched from its public CSV endpoint via requests (no key, and
+# certifi SSL); pandas-datareader is avoided (it imports the removed distutils).
 yfinance>=0.2
-pandas-datareader>=0.10
+requests>=2.31
 
 # LLM
 anthropic>=0.39

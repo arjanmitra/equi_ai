@@ -219,6 +219,25 @@ Returns normalize to decimals (`1.2%`/`1.2` → `0.012`) and periods to the firs
 of the month; unmatched series are reported, not fatal; ingestion is idempotent
 (upsert per `(fund, period)`).
 
+## Market data — fixture vs live
+
+Benchmark returns (Sharpe, correlation) and the risk-free rate come from a
+provider behind one interface, with cached `BenchmarkSeries`:
+
+- **`MARKET_DATA=fixture`** (default) — deterministic synthetic data. Hermetic
+  and offline, so the test suite never touches the network. This is what the
+  test gate always uses.
+- **`MARKET_DATA=live`** — real data, **verified working**: **yfinance** for
+  index monthly returns (e.g. `SPY`, `AGG`) and **FRED**'s public CSV for the
+  3-month T-bill (`DGS3MO`), no API key for either. FRED is fetched via
+  `requests` (certifi SSL) rather than `pandas-datareader` (which imports the
+  removed `distutils`). Results cache in the DB, so a run fetches each
+  `(ticker, month)` at most once.
+
+Fund-intrinsic metrics (vol, max drawdown, CAGR) use the uploaded returns and
+are real regardless of mode; only Sharpe's risk-free term and benchmark
+correlation depend on this setting.
+
 ## Roadmap (next stages of the pipeline)
 
 1. ~~Persist canonical funds + provenance (SQLAlchemy + SQLite).~~ ✓
