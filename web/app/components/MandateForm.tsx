@@ -1,13 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FREQUENCY_OPTIONS, STRATEGY_OPTIONS } from "../constants";
 import type { MandateSpec } from "../types";
-import { Section } from "./ui";
-
-// The form keeps raw string inputs; we parse/convert on submit. Allocators think
-// in % and $M, so fees are entered as percents and AUM in millions, then
-// converted to the backend's decimals / absolute USD.
 
 const numOrNull = (s: string): number | null =>
   s.trim() === "" ? null : Number(s);
@@ -30,7 +43,7 @@ export function MandateForm({
   error: string | null;
 }) {
   const [label, setLabel] = useState("");
-  const [redemption, setRedemption] = useState("");
+  const [redemption, setRedemption] = useState("any");
   const [notice, setNotice] = useState("");
   const [lockup, setLockup] = useState("");
   const [mgmtFee, setMgmtFee] = useState("");
@@ -42,16 +55,13 @@ export function MandateForm({
   const [targetVol, setTargetVol] = useState("");
   const [maxDd, setMaxDd] = useState("");
 
-  function toggle(list: string[], value: string): string[] {
-    return list.includes(value)
-      ? list.filter((v) => v !== value)
-      : [...list, value];
-  }
+  const toggle = (list: string[], v: string) =>
+    list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 
   function submit() {
     onRun({
       label: label || null,
-      max_redemption_frequency: redemption || null,
+      max_redemption_frequency: redemption === "any" ? null : redemption,
       max_notice_period_days: numOrNull(notice),
       max_lockup_months: numOrNull(lockup),
       max_management_fee: pctToDecimal(mgmtFee),
@@ -66,151 +76,143 @@ export function MandateForm({
   }
 
   return (
-    <section className="mt-8 rounded-lg border border-slate-200 bg-white p-5">
-      <h2 className="font-medium">Mandate</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        Set the constraints. Leave a field blank to skip that check. Hard
-        constraints (liquidity, exclusions) eliminate funds; soft ones (fees,
-        preferences, size) lower the score.
-      </p>
-
-      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Section title="Liquidity (hard)">
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-brand-green">Mandate</CardTitle>
+        <CardDescription>
+          Set the constraints. Leave a field blank to skip that check. Hard
+          constraints (liquidity, exclusions) eliminate funds; soft ones (fees,
+          preferences, size) lower the score.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Group title="Liquidity (hard)">
           <Field label="Need at least this redemption frequency">
-            <select
-              className={inputClass}
-              value={redemption}
-              onChange={(e) => setRedemption(e.target.value)}
-            >
-              <option value="">Any</option>
-              {FREQUENCY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            <Select value={redemption} onValueChange={setRedemption}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                {FREQUENCY_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="Max notice period (days)">
-            <NumberInput value={notice} onChange={setNotice} placeholder="e.g. 60" />
+            <Input type="number" value={notice} onChange={(e) => setNotice(e.target.value)} placeholder="e.g. 60" />
           </Field>
           <Field label="Max lockup (months)">
-            <NumberInput value={lockup} onChange={setLockup} placeholder="e.g. 12" />
+            <Input type="number" value={lockup} onChange={(e) => setLockup(e.target.value)} placeholder="e.g. 12" />
           </Field>
-        </Section>
+        </Group>
 
-        <Section title="Fees (soft)">
+        <Group title="Fees (soft)">
           <Field label="Max management fee (%)">
-            <NumberInput value={mgmtFee} onChange={setMgmtFee} placeholder="e.g. 1.8" />
+            <Input type="number" value={mgmtFee} onChange={(e) => setMgmtFee(e.target.value)} placeholder="e.g. 1.8" />
           </Field>
           <Field label="Max performance fee (%)">
-            <NumberInput value={perfFee} onChange={setPerfFee} placeholder="e.g. 20" />
+            <Input type="number" value={perfFee} onChange={(e) => setPerfFee(e.target.value)} placeholder="e.g. 20" />
           </Field>
-        </Section>
+        </Group>
 
-        <Section title="Strategy" hint="Exclusions are hard; preferences are soft.">
-          <p className="mb-1 text-xs font-medium text-slate-500">Preferred</p>
-          <StrategyChecks selected={preferred} onToggle={(v) => setPreferred(toggle(preferred, v))} />
-          <p className="mb-1 mt-3 text-xs font-medium text-slate-500">Excluded</p>
-          <StrategyChecks selected={excluded} onToggle={(v) => setExcluded(toggle(excluded, v))} />
-        </Section>
+        <Group title="Strategy" hint="Exclusions are hard; preferences are soft.">
+          <p className="mb-1 text-xs font-medium text-muted-foreground">Preferred</p>
+          <StrategyChecks selected={preferred} onToggle={(v) => setPreferred(toggle(preferred, v))} idPrefix="pref" />
+          <p className="mb-1 mt-3 text-xs font-medium text-muted-foreground">Excluded</p>
+          <StrategyChecks selected={excluded} onToggle={(v) => setExcluded(toggle(excluded, v))} idPrefix="excl" />
+        </Group>
 
-        <Section title="Size & track record (soft)">
+        <Group title="Size & track record (soft)">
           <Field label="Min AUM ($M)">
-            <NumberInput value={minAum} onChange={setMinAum} placeholder="e.g. 100" />
+            <Input type="number" value={minAum} onChange={(e) => setMinAum(e.target.value)} placeholder="e.g. 100" />
           </Field>
           <Field label="Min track record (months)">
-            <NumberInput value={trackRecord} onChange={setTrackRecord} placeholder="e.g. 36" />
+            <Input type="number" value={trackRecord} onChange={(e) => setTrackRecord(e.target.value)} placeholder="e.g. 36" />
           </Field>
-        </Section>
+        </Group>
 
-        <Section
-          title="Risk (pending metrics)"
-          hint="Captured now; evaluated once the metrics stage computes vol & drawdown."
-        >
+        <Group title="Risk" hint="Evaluated once the metrics stage computes vol & drawdown.">
           <Field label="Target volatility (%)">
-            <NumberInput value={targetVol} onChange={setTargetVol} placeholder="e.g. 10" />
+            <Input type="number" value={targetVol} onChange={(e) => setTargetVol(e.target.value)} placeholder="e.g. 10" />
           </Field>
           <Field label="Max drawdown (%)">
-            <NumberInput value={maxDd} onChange={setMaxDd} placeholder="e.g. 20" />
+            <Input type="number" value={maxDd} onChange={(e) => setMaxDd(e.target.value)} placeholder="e.g. 20" />
           </Field>
-        </Section>
+        </Group>
 
-        <Section title="Label">
+        <Group title="Label">
           <Field label="Mandate name (optional)">
-            <input
-              className={inputClass}
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="e.g. Liquid macro sleeve"
-            />
+            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Liquid macro sleeve" />
           </Field>
-        </Section>
+        </Group>
+      </CardContent>
+      <div className="flex items-center gap-3 px-6 pb-6">
+        <Button onClick={submit} disabled={loading}>
+          {loading ? "Evaluating…" : "Evaluate funds"}
+        </Button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
-
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-
-      <button
-        onClick={submit}
-        disabled={loading}
-        className="mt-4 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-      >
-        {loading ? "Evaluating…" : "Evaluate funds"}
-      </button>
-    </section>
+    </Card>
   );
 }
 
-const inputClass =
-  "w-full rounded border border-slate-300 px-2 py-1 text-sm focus:border-slate-500 focus:outline-none";
+function Group({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border bg-secondary/40 p-4">
+      <h3 className="text-sm font-medium text-brand-green">{title}</h3>
+      {hint && <p className="mb-2 text-xs text-muted-foreground">{hint}</p>}
+      <div className="mt-2 space-y-3">{children}</div>
+    </div>
+  );
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="mb-2 block">
-      <span className="mb-1 block text-xs text-slate-500">{label}</span>
+    <div className="space-y-1">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
       {children}
-    </label>
-  );
-}
-
-function NumberInput({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <input
-      type="number"
-      className={inputClass}
-      value={value}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-    />
+    </div>
   );
 }
 
 function StrategyChecks({
   selected,
   onToggle,
+  idPrefix,
 }: {
   selected: string[];
   onToggle: (v: string) => void;
+  idPrefix: string;
 }) {
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-1">
-      {STRATEGY_OPTIONS.map((o) => (
-        <label key={o.value} className="flex items-center gap-1 text-xs text-slate-600">
-          <input
-            type="checkbox"
-            checked={selected.includes(o.value)}
-            onChange={() => onToggle(o.value)}
-          />
-          {o.label}
-        </label>
-      ))}
+    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+      {STRATEGY_OPTIONS.map((o) => {
+        const id = `${idPrefix}-${o.value}`;
+        return (
+          <div key={o.value} className="flex items-center gap-2">
+            <Checkbox
+              id={id}
+              checked={selected.includes(o.value)}
+              onCheckedChange={() => onToggle(o.value)}
+            />
+            <Label htmlFor={id} className="text-xs font-normal text-foreground">
+              {o.label}
+            </Label>
+          </div>
+        );
+      })}
     </div>
   );
 }

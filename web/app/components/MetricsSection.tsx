@@ -1,12 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { API } from "../constants";
+import { num, pct } from "@/lib/format";
 import type { FundMetricsOut, ReturnsIngestResult } from "../types";
-import { Badge, num, pct } from "./ui";
 
-// Returns ingestion + metric computation for an upload. Self-contained: the
-// backend persists metrics, so the mandate run reads them independently.
 export function MetricsSection({ uploadId }: { uploadId: string }) {
   const [returnsFiles, setReturnsFiles] = useState<FileList | null>(null);
   const [ingests, setIngests] = useState<ReturnsIngestResult[] | null>(null);
@@ -53,107 +69,104 @@ export function MetricsSection({ uploadId }: { uploadId: string }) {
   }
 
   return (
-    <section className="mt-8 rounded-lg border border-slate-200 bg-white p-5">
-      <h2 className="font-medium">Returns &amp; metrics</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        Attach a monthly return series (long or wide-by-date), then compute
-        risk/return metrics. These power the mandate&apos;s volatility and
-        drawdown checks.
-      </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-brand-green">Returns &amp; metrics</CardTitle>
+        <CardDescription>
+          Attach a monthly return series (long or wide-by-date), then compute
+          risk/return metrics. These power the mandate&apos;s volatility and
+          drawdown checks.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            type="file"
+            multiple
+            accept=".csv,.tsv,.xlsx,.xls"
+            onChange={(e) => setReturnsFiles(e.target.files)}
+            className="max-w-xs text-sm"
+          />
+          <Button
+            variant="outline"
+            onClick={uploadReturns}
+            disabled={!returnsFiles?.length || busy !== null}
+          >
+            {busy === "returns" ? "Attaching…" : "Attach returns"}
+          </Button>
+          <Button onClick={computeMetrics} disabled={busy !== null}>
+            {busy === "metrics" ? "Computing…" : "Compute metrics"}
+          </Button>
+        </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <input
-          type="file"
-          multiple
-          accept=".csv,.tsv,.xlsx,.xls"
-          onChange={(e) => setReturnsFiles(e.target.files)}
-          className="text-sm"
-        />
-        <button
-          onClick={uploadReturns}
-          disabled={!returnsFiles?.length || busy !== null}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium disabled:opacity-40"
-        >
-          {busy === "returns" ? "Attaching…" : "Attach returns"}
-        </button>
-        <button
-          onClick={computeMetrics}
-          disabled={busy !== null}
-          className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40"
-        >
-          {busy === "metrics" ? "Computing…" : "Compute metrics"}
-        </button>
-      </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {ingests && (
+          <ul className="space-y-1 text-sm">
+            {ingests.map((r, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{r.shape}</Badge>
+                <span className="text-muted-foreground">
+                  {r.source_name}: {r.observations_written} observations,{" "}
+                  {r.matched_funds.length} fund(s) matched
+                  {r.period_start && `, ${r.period_start} → ${r.period_end}`}
+                </span>
+                {r.unmatched_refs.length > 0 && (
+                  <Badge variant="warning">
+                    {r.unmatched_refs.length} unmatched
+                  </Badge>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {ingests && (
-        <ul className="mt-4 space-y-1 text-sm">
-          {ingests.map((r, i) => (
-            <li key={i} className="flex flex-wrap items-center gap-2">
-              <Badge tone="slate">{r.shape}</Badge>
-              <span className="text-slate-600">
-                {r.source_name}: {r.observations_written} observations,{" "}
-                {r.matched_funds.length} fund(s) matched
-                {r.period_start && `, ${r.period_start} → ${r.period_end}`}
-              </span>
-              {r.unmatched_refs.length > 0 && (
-                <Badge tone="amber">
-                  {r.unmatched_refs.length} unmatched
-                </Badge>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {metrics && <MetricsTable metrics={metrics} />}
-    </section>
+        {metrics && <MetricsTable metrics={metrics} />}
+      </CardContent>
+    </Card>
   );
 }
 
 function MetricsTable({ metrics }: { metrics: FundMetricsOut[] }) {
   return (
-    <div className="mt-5 overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b text-left text-slate-500">
-            <th className="px-2 py-1 font-medium">Fund</th>
-            <th className="px-2 py-1 font-medium">Bench</th>
-            <th className="px-2 py-1 font-medium text-right">n</th>
-            <th className="px-2 py-1 font-medium text-right">Vol</th>
-            <th className="px-2 py-1 font-medium text-right">Max DD</th>
-            <th className="px-2 py-1 font-medium text-right">CAGR</th>
-            <th className="px-2 py-1 font-medium text-right">Sharpe</th>
-            <th className="px-2 py-1 font-medium text-right">Corr</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="rounded-lg border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Fund</TableHead>
+            <TableHead>Bench</TableHead>
+            <TableHead className="text-right">n</TableHead>
+            <TableHead className="text-right">Vol</TableHead>
+            <TableHead className="text-right">Max DD</TableHead>
+            <TableHead className="text-right">CAGR</TableHead>
+            <TableHead className="text-right">Sharpe</TableHead>
+            <TableHead className="text-right">Corr</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {metrics.map((m) => (
-            <tr key={m.fund_id} className="border-b last:border-0">
-              <td className="px-2 py-1">
+            <TableRow key={m.fund_id}>
+              <TableCell className="font-medium">
                 {m.fund_name}
                 {m.low_confidence && m.n_obs > 0 && (
-                  <span className="ml-2">
-                    <Badge tone="amber">low n</Badge>
-                  </span>
+                  <Badge variant="warning" className="ml-2">
+                    low n
+                  </Badge>
                 )}
-              </td>
-              <td className="px-2 py-1 text-slate-500">{m.benchmark_ticker ?? "—"}</td>
-              <td className="px-2 py-1 text-right tabular-nums">{m.n_obs}</td>
-              <td className="px-2 py-1 text-right tabular-nums">{pct(m.annualized_volatility)}</td>
-              <td className="px-2 py-1 text-right tabular-nums">{pct(m.max_drawdown)}</td>
-              <td className="px-2 py-1 text-right tabular-nums">{pct(m.annualized_return)}</td>
-              <td className="px-2 py-1 text-right tabular-nums">{num(m.sharpe)}</td>
-              <td className="px-2 py-1 text-right tabular-nums">{num(m.correlation_benchmark)}</td>
-            </tr>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {m.benchmark_ticker ?? "—"}
+              </TableCell>
+              <TableCell className="text-right tabular-nums">{m.n_obs}</TableCell>
+              <TableCell className="text-right tabular-nums">{pct(m.annualized_volatility)}</TableCell>
+              <TableCell className="text-right tabular-nums">{pct(m.max_drawdown)}</TableCell>
+              <TableCell className="text-right tabular-nums">{pct(m.annualized_return)}</TableCell>
+              <TableCell className="text-right tabular-nums">{num(m.sharpe)}</TableCell>
+              <TableCell className="text-right tabular-nums">{num(m.correlation_benchmark)}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
-      <p className="mt-2 text-xs text-slate-400">
-        Vol annualized (×√12); CAGR geometric; Sharpe vs risk-free; corr vs
-        benchmark. &quot;low n&quot; = under 12 months — risk checks report n/a.
-      </p>
+        </TableBody>
+      </Table>
     </div>
   );
 }

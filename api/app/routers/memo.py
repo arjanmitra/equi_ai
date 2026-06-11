@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Response
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -13,6 +16,15 @@ from app.schemas.memo import MemoOut
 from app.services.export import memo_to_docx, memo_to_pdf
 from app.services.memo import generate_and_persist_memo, serialize_memo
 
+
+class MemoSummary(BaseModel):
+    id: str
+    run_id: str
+    created_at: datetime
+    model: str
+    all_verified: bool
+    label: str | None  # the mandate's label, for display
+
 _EXPORTS = {
     "pdf": ("application/pdf", memo_to_pdf),
     "docx": (
@@ -22,6 +34,24 @@ _EXPORTS = {
 }
 
 router = APIRouter(tags=["memo"])
+
+
+@router.get("/memos", response_model=list[MemoSummary])
+def list_memos(db: Session = Depends(get_db)) -> list[MemoSummary]:
+    rows = db.scalars(
+        select(models.Memo).order_by(models.Memo.created_at.desc())
+    ).all()
+    return [
+        MemoSummary(
+            id=m.id,
+            run_id=m.mandate_run_id,
+            created_at=m.created_at,
+            model=m.model,
+            all_verified=m.all_verified,
+            label=m.run.mandate.label if m.run and m.run.mandate else None,
+        )
+        for m in rows
+    ]
 
 
 @router.post("/runs/{run_id}/memo", response_model=MemoOut)

@@ -41,6 +41,27 @@ export interface ExtractionResult {
 
 // --- Mandate + run ---------------------------------------------------------
 
+export type View =
+  | { kind: "workspace" }
+  | { kind: "memo"; id: string }
+  | { kind: "mandate"; id: string };
+
+export interface MandateOut {
+  id: string;
+  created_at: string;
+  label: string | null;
+  spec: MandateSpec;
+}
+
+export interface MemoSummary {
+  id: string;
+  run_id: string;
+  created_at: string;
+  model: string;
+  all_verified: boolean;
+  label: string | null;
+}
+
 export interface MandateSpec {
   label?: string | null;
   max_redemption_frequency?: string | null;
