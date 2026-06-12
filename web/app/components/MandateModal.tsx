@@ -16,6 +16,21 @@ import { MandateFields } from "./MandateFields";
 
 const EMPTY: MandateSpec = { preferred_strategies: [], excluded_strategies: [] };
 
+// Turn FastAPI's 422 body into a readable, field-specific message.
+function apiError(body: unknown, status: number): string {
+  const detail = (body as { detail?: unknown })?.detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((e: { loc?: unknown[]; msg?: string }) => {
+        const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : "field";
+        return `${field}: ${e.msg ?? "invalid"}`;
+      })
+      .join("; ");
+  }
+  if (typeof detail === "string") return detail;
+  return `Request failed (${status})`;
+}
+
 export function MandateModal({
   open,
   onOpenChange,
@@ -38,7 +53,9 @@ export function MandateModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(spec),
       });
-      if (!res.ok) throw new Error(`API ${res.status}`);
+      if (!res.ok) {
+        throw new Error(apiError(await res.json().catch(() => null), res.status));
+      }
       onSaved((await res.json()) as MandateOut);
       onOpenChange(false);
     } catch (e) {
