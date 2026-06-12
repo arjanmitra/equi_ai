@@ -42,9 +42,23 @@ export interface ExtractionResult {
 // --- Mandate + run ---------------------------------------------------------
 
 export type View =
-  | { kind: "workspace" }
-  | { kind: "memo"; id: string }
+  | { kind: "analyses" }
+  | { kind: "mandates" }
+  | { kind: "analysis"; id: string; autoGenerate?: boolean }
   | { kind: "mandate"; id: string };
+
+export interface AnalysisOut {
+  id: string;
+  created_at: string;
+  label: string | null;
+  upload_id: string;
+  mandate_id: string | null;
+  run_id: string | null;
+  memo_id: string | null;
+  universe_files: string[];
+  returns_files: string[];
+  has_memo: boolean;
+}
 
 export interface MandateOut {
   id: string;
@@ -173,6 +187,33 @@ export interface MemoOut {
   sections: MemoSectionOut[];
   facts: Record<string, Fact>;
   appendix: FundFacts[];
+}
+
+export interface FundOut {
+  id: string;
+  upload_id: string;
+  source_file_id: string;
+  business_key: string;
+  name: string;
+  strategy: string | null;
+  redemption_frequency: string | null;
+  notice_period_days: number | null;
+  lockup_months: number | null;
+  management_fee: number | null;
+  performance_fee: number | null;
+  aum_usd: number | null;
+  inception_date: string | null;
+  notes: string | null;
+}
+
+export interface SourceFieldOut {
+  id: string;
+  target_field: string;
+  raw_value: string | null;
+  normalized_value: unknown;
+  source: string;
+  transform: string | null;
+  confidence: number | null;
 }
 
 export interface FundMetricsOut {

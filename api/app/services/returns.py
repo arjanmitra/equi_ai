@@ -61,6 +61,19 @@ def ingest_returns_for_upload(
             obs.value = value
         else:
             db.add(models.ReturnObservation(fund_id=fund_id, period=period, value=value))
+
+    # Record the returns file itself, so the Analyses table can show its name.
+    db.add(
+        models.SourceFile(
+            upload_id=upload_id,
+            filename=extraction.source_name,
+            kind="returns",
+            extraction_path=extraction.shape,
+            records_ok=len(deduped),
+            records_failed=extraction.report.records_failed,
+            report_json=extraction.report.model_dump(mode="json"),
+        )
+    )
     db.commit()
 
     periods = [p for (_, p) in deduped]

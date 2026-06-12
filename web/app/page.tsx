@@ -1,30 +1,33 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { API } from "./constants";
-import type { MandateOut, MemoSummary, View } from "./types";
+import type { AnalysisOut, MandateOut, View } from "./types";
+import { AnalysesTable } from "./components/AnalysesTable";
+import { AnalysisDetail } from "./components/AnalysisDetail";
 import { AppSidebar } from "./components/AppSidebar";
+import { MandatesTable } from "./components/MandatesTable";
 import { MandateView } from "./components/MandateView";
-import { MemoView } from "./components/MemoView";
-import { Workspace } from "./components/Workspace";
 
 export default function Home() {
-  const [memos, setMemos] = useState<MemoSummary[]>([]);
+  const [analyses, setAnalyses] = useState<AnalysisOut[]>([]);
   const [mandates, setMandates] = useState<MandateOut[]>([]);
-  const [view, setView] = useState<View>({ kind: "workspace" });
+  const [view, setView] = useState<View>({ kind: "analyses" });
 
   const refresh = useCallback(async () => {
     try {
-      const [m1, m2] = await Promise.all([
-        fetch(`${API}/memos`).then((r) => r.json()),
+      const [a, m] = await Promise.all([
+        fetch(`${API}/analyses`).then((r) => r.json()),
         fetch(`${API}/mandates`).then((r) => r.json()),
       ]);
-      setMemos(m1 as MemoSummary[]);
-      setMandates(m2 as MandateOut[]);
+      setAnalyses(a as AnalysisOut[]);
+      setMandates(m as MandateOut[]);
     } catch {
-      /* sidebar lists stay as-is on failure */
+      /* keep current lists on failure */
     }
   }, []);
 
@@ -38,23 +41,45 @@ export default function Home() {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <AppSidebar
-          memos={memos}
-          mandates={mandates}
-          view={view}
-          onNewAnalysis={() => setView({ kind: "workspace" })}
-          onSelectMemo={(id) => setView({ kind: "memo", id })}
-          onSelectMandate={(id) => setView({ kind: "mandate", id })}
-        />
+        <AppSidebar view={view} onSelect={(kind) => setView({ kind })} />
         <SidebarInset>
           <div className="mx-auto max-w-5xl px-8 py-10">
-            {view.kind === "workspace" && <Workspace onChanged={refresh} />}
-            {view.kind === "memo" && <MemoView memoId={view.id} />}
-            {view.kind === "mandate" && selectedMandate && (
-              <MandateView mandate={selectedMandate} />
+            {view.kind === "analyses" && (
+              <AnalysesTable
+                analyses={analyses}
+                onChanged={refresh}
+                onOpenAnalysis={(id, autoGenerate) => setView({ kind: "analysis", id, autoGenerate })}
+              />
             )}
-            {view.kind === "mandate" && !selectedMandate && (
-              <p className="text-sm text-muted-foreground">Mandate not found.</p>
+
+            {view.kind === "mandates" && (
+              <MandatesTable
+                mandates={mandates}
+                onChanged={refresh}
+                onOpenMandate={(id) => setView({ kind: "mandate", id })}
+              />
+            )}
+
+            {view.kind === "analysis" && (
+              <AnalysisDetail
+                analysisId={view.id}
+                autoGenerate={view.autoGenerate}
+                onChanged={refresh}
+                onBack={() => setView({ kind: "analyses" })}
+              />
+            )}
+
+            {view.kind === "mandate" && (
+              <div className="space-y-4">
+                <Button variant="ghost" size="sm" className="-ml-2" onClick={() => setView({ kind: "mandates" })}>
+                  <ChevronLeft /> Back to mandates
+                </Button>
+                {selectedMandate ? (
+                  <MandateView mandate={selectedMandate} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Mandate not found.</p>
+                )}
+              </div>
             )}
           </div>
         </SidebarInset>

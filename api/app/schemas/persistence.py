@@ -45,9 +45,11 @@ class SourceFileOut(BaseModel):
     id: str
     filename: str
     mime: str | None
+    kind: str
     extraction_path: str
     records_ok: int
     records_failed: int
+    report_json: dict | None = None
 
 
 class UploadOut(BaseModel):

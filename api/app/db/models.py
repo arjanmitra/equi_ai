@@ -72,7 +72,8 @@ class SourceFile(Base):
     upload_id: Mapped[str] = mapped_column(ForeignKey("uploads.id"))
     filename: Mapped[str] = mapped_column(String)
     mime: Mapped[str | None] = mapped_column(String, nullable=True)
-    extraction_path: Mapped[str] = mapped_column(String)  # tabular / document / none
+    kind: Mapped[str] = mapped_column(String, default="universe")  # universe | returns
+    extraction_path: Mapped[str] = mapped_column(String)  # tabular / document / none / long / wide
     records_ok: Mapped[int] = mapped_column(Integer, default=0)
     records_failed: Mapped[int] = mapped_column(Integer, default=0)
     report_json: Mapped[dict] = mapped_column(JSON, default=dict)
@@ -272,6 +273,24 @@ class MemoSection(Base):
     claims: Mapped[list[MemoClaim]] = relationship(
         back_populates="section", cascade="all, delete-orphan"
     )
+
+
+class Analysis(Base):
+    """One end-to-end analysis: an upload (universe + returns) → mandate → run →
+    memo. The lifecycle pointers fill in as the New Analysis wizard progresses;
+    this is the row in the Analyses table."""
+
+    __tablename__ = "analyses"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    label: Mapped[str | None] = mapped_column(String, nullable=True)
+    upload_id: Mapped[str] = mapped_column(ForeignKey("uploads.id"))
+    mandate_id: Mapped[str | None] = mapped_column(ForeignKey("mandates.id"), nullable=True)
+    run_id: Mapped[str | None] = mapped_column(ForeignKey("mandate_runs.id"), nullable=True)
+    memo_id: Mapped[str | None] = mapped_column(ForeignKey("memos.id"), nullable=True)
+
+    upload: Mapped[Upload] = relationship()
 
 
 class MemoClaim(Base):

@@ -9,7 +9,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.db.database import init_db
-from app.routers import extract, funds, mandates, memo, metrics, returns, runs
+from app.routers import (
+    analysis,
+    extract,
+    funds,
+    mandates,
+    memo,
+    metrics,
+    returns,
+    runs,
+)
 
 
 @asynccontextmanager
@@ -28,6 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(analysis.router)
 app.include_router(extract.router)
 app.include_router(funds.router)
 app.include_router(mandates.router)
