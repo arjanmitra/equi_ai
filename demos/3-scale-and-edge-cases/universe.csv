@@ -1,0 +1,121 @@
+Fund ID,Fund Name,Strategy,Redemption,Notice (days),Lockup (months),Mgmt Fee,Perf Fee,AUM (USD),Inception,Notes
+F0001,Vantage Asset Management,CTA / Managed Futures,Daily,0,0,2%,20%,"$85,000,000",2021-01-01,Key-person risk on founder.
+F0002,Juniper Fund,CTA / Managed Futures,Annual,180,36,2%,17.5%,"$12,000,000,000",2024-07-01,Key-person risk on founder.
+F0003,Xenon Fund,Relative Value,Monthly,60,12,1.75%,10%,"$3,500,000,000",2024-01-01,AUM withheld pending NDA.
+F0004,Beacon Advisors,Fixed Income,Weekly,120,36,1.25%,10%,"$150,000,000",2024-07-01,New PM hired 2023.
+F0005,Tideline Credit Opportunities,Other,Quarterly,60,0,0.5%,0%,"$12,000,000,000",2018-01-01,"Uses ""soft"" gates in stress."
+F0006,Halcyon Associates,Market Neutral,Quarterly,180,24,,,,2024-07-01,
+F0007,Westfield Holdings,Multi-Strategy,Quarterly,180,0,2.5%,15%,"$1,200,000,000",2023-01-01,Short track record.
+F0008,Westfield Holdings,Credit,Monthly,15,0,1.5%,0%,"$20,000,000,000",2015-01-01,"Uses ""soft"" gates in stress."
+F0009,Tideline Group,Market Neutral,Quarterly,5,24,1.75%,30%,"$85,000,000",2024-01-01,Key-person risk on founder.
+F0010,Fjord Management,Market Neutral,Monthly,45,12,2.5%,17.5%,"$85,000,000",2023-07-01,Illiquid underlying positions.
+F0011,Zürich Macro Partners,L/S Equity,Weekly,15,0,1%,15%,"$1,200,000,000",2015-01-01,AUM withheld pending NDA.
+F0012,Crédit Alpha,Multi-Strategy,Quarterly,30,6,1.75%,10%,"$25,000,000",2020-01-01,Concentrated book — top 5 = 60%.
+F0013,São Paulo Capital,Other,Annual,45,0,1%,10%,"$150,000,000",2023-07-01,
+F0014,Müller Global,Credit,Daily,15,36,1%,20%,"$150,000,000",2018-01-01,
+F0015,Ardent Investments,L/S Equity,Weekly,0,0,1%,10%,"$25,000,000",2015-01-01,Concentrated book — top 5 = 60%.
+F0016,Northgate Associates,Multi-Strategy,Annual,90,36,1%,15%,"$5,000,000",2024-07-01,Concentrated book — top 5 = 60%.
+F0017,Drawbridge Credit Opportunities,Other,Annual,15,12,1.5%,15%,"$85,000,000",2024-07-01,
+F0018,Xenon Investments,Fixed Income,Daily,90,12,1.5%,30%,"$450,000,000",2020-01-01,
+F0019,Pinnacle Associates,Event Driven,Weekly,5,0,2%,0%,"$150,000,000",2022-01-01,AUM withheld pending NDA.
+F0020,Delta Holdings,Global Macro,Annual,45,36,1.5%,17.5%,"$1,200,000,000",2023-07-01,Key-person risk on founder.
+F0021,Quartz Fund,Global Macro,Annual,90,6,2.5%,30%,"$25,000,000",2022-01-01,Short track record.
+F0022,Riverstone Investments,Relative Value,Semi-Annual,45,24,1%,20%,"$1,200,000,000",2023-07-01,Concentrated book — top 5 = 60%.
+F0023,Orion Associates,Global Macro,Monthly,30,12,1.5%,10%,"$25,000,000",2015-01-01,Seasoned team; stable AUM.
+F0024,Northgate Macro Fund,Market Neutral,Annual,15,24,2%,15%,"$3,500,000,000",2024-01-01,
+F0025,Juniper Investments,CTA / Managed Futures,Quarterly,15,24,2.5%,15%,"$20,000,000,000",2023-01-01,AUM withheld pending NDA.
+F0026,Delta Associates,Multi-Strategy,Semi-Annual,120,12,1.25%,15%,"$5,000,000",2024-07-01,Seasoned team; stable AUM.
+F0027,Yarrow Capital,CTA / Managed Futures,Annual,30,36,1.5%,0%,"$25,000,000",2024-01-01,Illiquid underlying positions.
+F0028,Vantage Associates,CTA / Managed Futures,Daily,30,12,2%,20%,"$450,000,000",2023-01-01,"Uses ""soft"" gates in stress."
+F0029,Harbour Investments,Market Neutral,Weekly,60,12,1%,10%,"$1,200,000,000",2024-07-01,Concentrated book — top 5 = 60%.
+F0030,Xenon Partners,L/S Equity,Monthly,180,0,1.75%,0%,"$85,000,000",2024-01-01,Seasoned team; stable AUM.
+F0031,Ardent Holdings,Multi-Strategy,Quarterly,5,12,2.5%,10%,"$85,000,000",2020-01-01,Seasoned team; stable AUM.
+F0032,Cedar Fund,Credit,Semi-Annual,90,0,1.25%,20%,"$450,000,000",2024-07-01,Short track record.
+F0033,Delta Partners,Multi-Strategy,Daily,30,12,2.5%,15%,"$150,000,000",2018-01-01,Concentrated book — top 5 = 60%.
+F0034,Lodestar Group,Credit,Weekly,15,0,2%,17.5%,"$12,000,000,000",2020-01-01,Key-person risk on founder.
+F0035,Delta Strategies,Market Neutral,Quarterly,15,12,1.25%,0%,"$25,000,000",2022-01-01,New PM hired 2023.
+F0036,Summit Holdings,Fixed Income,Semi-Annual,180,12,1.5%,20%,"$20,000,000,000",2020-01-01,Concentrated book — top 5 = 60%.
+F0037,Umbra Holdings,Credit,Weekly,15,6,2%,10%,"$20,000,000,000",2022-01-01,Key-person risk on founder.
+F0038,Alpha Fund,Global Macro,Annual,45,24,1.75%,10%,"$20,000,000,000",2018-01-01,
+F0039,Harbour Holdings,Fixed Income,Weekly,5,6,0.5%,20%,"$85,000,000",2020-01-01,
+F0040,Brightwater Holdings,Event Driven,Monthly,180,24,1.75%,30%,"$1,200,000,000",2024-01-01,
+F0041,Cobalt Macro Fund,CTA / Managed Futures,Annual,45,0,0.5%,0%,"$1,200,000,000",2023-01-01,Key-person risk on founder.
+F0042,Juniper Partners,Market Neutral,Semi-Annual,60,24,1.75%,20%,"$85,000,000",2015-01-01,Concentrated book — top 5 = 60%.
+F0043,Quartz Associates,Global Macro,Annual,45,0,2.5%,10%,"$5,000,000",2023-07-01,Illiquid underlying positions.
+F0044,Quartz Capital,Other,Quarterly,30,0,1.25%,30%,"$1,200,000,000",2018-01-01,Concentrated book — top 5 = 60%.
+F0045,Drawbridge Asset Management,Multi-Strategy,Quarterly,5,36,1%,0%,"$5,000,000",2018-01-01,Seasoned team; stable AUM.
+F0046,Ironwood Partners,L/S Equity,Annual,5,24,1.25%,10%,"$12,000,000,000",2024-07-01,AUM withheld pending NDA.
+F0047,Umbra Fund,Credit,Weekly,90,0,1%,17.5%,"$150,000,000",2015-01-01,Key-person risk on founder.
+F0048,Cedar Global,Market Neutral,Weekly,15,6,2%,15%,"$150,000,000",2024-07-01,Concentrated book — top 5 = 60%.
+F0049,Echo Asset Management,CTA / Managed Futures,Monthly,45,6,1%,17.5%,"$12,000,000,000",2024-07-01,
+F0050,Orion Management,CTA / Managed Futures,Daily,45,0,2.5%,15%,"$5,000,000",2022-01-01,Short track record.
+F0051,Foxhill Credit Opportunities,CTA / Managed Futures,Quarterly,45,24,0.5%,30%,"$3,500,000,000",2020-01-01,"Uses ""soft"" gates in stress."
+F0052,Ardent Management,CTA / Managed Futures,Monthly,180,12,1.5%,17.5%,"$12,000,000,000",2020-01-01,AUM withheld pending NDA.
+F0053,Lodestar Asset Management,Other,Semi-Annual,120,24,1.75%,0%,"$20,000,000,000",2020-01-01,
+F0054,Cedar Strategies,Global Macro,Annual,120,12,1%,15%,"$150,000,000",2023-01-01,AUM withheld pending NDA.
+F0055,Vantage Group,Global Macro,Semi-Annual,15,6,1.5%,0%,"$20,000,000,000",2023-01-01,
+F0056,Echo Investments,L/S Equity,Monthly,90,36,2.5%,30%,"$5,000,000",2023-07-01,Key-person risk on founder.
+F0057,Granite Holdings,Global Macro,Quarterly,0,0,2.5%,20%,"$150,000,000",2021-01-01,Seasoned team; stable AUM.
+F0058,Summit Capital,Credit,Annual,0,24,0.5%,10%,"$12,000,000,000",2021-01-01,AUM withheld pending NDA.
+F0059,Xenon Holdings,L/S Equity,Annual,5,24,1.75%,15%,"$450,000,000",2024-07-01,Seasoned team; stable AUM.
+F0060,Meridian Management,CTA / Managed Futures,Quarterly,90,36,1.5%,15%,"$450,000,000",2023-07-01,New PM hired 2023.
+F0061,Northgate Fund,Market Neutral,Daily,5,6,1%,10%,"$85,000,000",2023-01-01,AUM withheld pending NDA.
+F0062,Echo Fund,Multi-Strategy,Daily,180,24,0.5%,20%,"$3,500,000,000",2021-01-01,Seasoned team; stable AUM.
+F0063,Umbra Investments,Global Macro,Semi-Annual,120,0,2.5%,10%,"$1,200,000,000",2024-07-01,Seasoned team; stable AUM.
+F0064,Riverstone Partners,CTA / Managed Futures,Monthly,120,12,0.5%,30%,"$25,000,000",2015-01-01,Seasoned team; stable AUM.
+F0065,Cobalt Investments,CTA / Managed Futures,Weekly,180,6,1.25%,15%,"$1,200,000,000",2022-01-01,"Uses ""soft"" gates in stress."
+F0066,Everest Macro Fund,Credit,Quarterly,90,12,2.5%,0%,"$1,200,000,000",2015-01-01,Seasoned team; stable AUM.
+F0067,Pinnacle Investments,Credit,Semi-Annual,0,36,1.75%,10%,"$12,000,000,000",2024-01-01,Seasoned team; stable AUM.
+F0068,Kestrel Associates,CTA / Managed Futures,Weekly,180,12,1.25%,0%,"$150,000,000",2024-07-01,AUM withheld pending NDA.
+F0069,Fjord Asset Management,Market Neutral,Monthly,5,6,0.5%,17.5%,"$450,000,000",2024-01-01,Short track record.
+F0070,Tideline Macro Fund,Multi-Strategy,Annual,60,24,2%,15%,"$20,000,000,000",2015-01-01,AUM withheld pending NDA.
+F0071,Brightwater Investments,Market Neutral,Daily,90,0,0.5%,0%,"$3,500,000,000",2015-01-01,
+F0072,Xenon Group,Credit,Semi-Annual,120,0,2.5%,30%,"$450,000,000",2021-01-01,Short track record.
+F0073,Meridian Strategies,Relative Value,Annual,90,12,0.5%,30%,"$20,000,000,000",2020-01-01,
+F0074,Brightwater Strategies,Global Macro,Quarterly,0,0,2.5%,20%,"$450,000,000",2024-01-01,Concentrated book — top 5 = 60%.
+F0075,Drawbridge Holdings,L/S Equity,Weekly,0,24,2.5%,0%,"$450,000,000",2022-01-01,Seasoned team; stable AUM.
+F0076,Alpha Partners,Market Neutral,Monthly,90,12,2%,0%,"$20,000,000,000",2024-01-01,AUM withheld pending NDA.
+F0077,Xenon Strategies,Event Driven,Weekly,120,6,1.5%,0%,"$85,000,000",2023-07-01,"Uses ""soft"" gates in stress."
+F0078,Ironwood Fund,Event Driven,Monthly,90,0,1.75%,17.5%,"$5,000,000",2023-07-01,Concentrated book — top 5 = 60%.
+F0079,Pinnacle Macro Fund,Global Macro,Weekly,15,0,1.75%,15%,"$12,000,000,000",2023-01-01,New PM hired 2023.
+F0080,Drawbridge Investments,Multi-Strategy,Annual,45,6,1.75%,15%,"$3,500,000,000",2023-01-01,Key-person risk on founder.
+F0081,Harbour Capital,Event Driven,Semi-Annual,30,12,2%,17.5%,"$5,000,000",2020-01-01,AUM withheld pending NDA.
+F0082,Granite Global,CTA / Managed Futures,Annual,30,6,1.25%,15%,"$85,000,000",2022-01-01,
+F0083,Lodestar Credit Opportunities,Credit,Quarterly,45,0,1.75%,10%,"$1,200,000,000",2015-01-01,AUM withheld pending NDA.
+F0084,Beacon Capital,Relative Value,Quarterly,120,12,1.75%,30%,"$12,000,000,000",2024-01-01,Key-person risk on founder.
+F0085,Harbour Asset Management,Relative Value,Quarterly,0,12,1.25%,0%,"$85,000,000",2018-01-01,AUM withheld pending NDA.
+F0086,Ardent Group,Multi-Strategy,Semi-Annual,5,24,0.5%,0%,"$150,000,000",2021-01-01,AUM withheld pending NDA.
+F0087,Summit Advisors,Event Driven,Monthly,15,36,2%,10%,"$20,000,000,000",2021-01-01,New PM hired 2023.
+F0088,Alpha Holdings,Market Neutral,Weekly,0,36,1.25%,17.5%,"$450,000,000",2020-01-01,Short track record.
+F0089,Cedar Asset Management,Credit,Weekly,90,0,1.5%,0%,"$3,500,000,000",2024-01-01,AUM withheld pending NDA.
+F0090,Lodestar Management,Fixed Income,Daily,15,6,1.75%,17.5%,"$3,500,000,000",2024-01-01,Concentrated book — top 5 = 60%.
+F0091,Kestrel Credit Opportunities,Global Macro,Annual,180,12,2%,17.5%,"$3,500,000,000",2024-07-01,Seasoned team; stable AUM.
+F0092,Granite Capital,Relative Value,Annual,0,24,0.5%,17.5%,"$85,000,000",2018-01-01,Key-person risk on founder.
+F0093,Vantage Management,Market Neutral,Monthly,5,24,0.5%,17.5%,"$5,000,000",2023-01-01,New PM hired 2023.
+F0094,Summit Partners,Global Macro,Semi-Annual,60,12,1.25%,17.5%,"$12,000,000,000",2024-07-01,"Uses ""soft"" gates in stress."
+F0095,Umbra Global,Multi-Strategy,Monthly,90,0,2%,30%,"$5,000,000",2024-01-01,Short track record.
+F0096,Westfield Strategies,Credit,Annual,90,24,2.5%,10%,"$150,000,000",2018-01-01,Seasoned team; stable AUM.
+F0097,Northgate Management,Credit,Monthly,5,6,2.5%,17.5%,"$3,500,000,000",2024-07-01,Key-person risk on founder.
+F0098,Zephyr Credit Opportunities,Fixed Income,Daily,60,6,2.5%,10%,"$25,000,000",2021-01-01,
+F0099,Westfield Group,Global Macro,Annual,30,0,2%,15%,"$5,000,000",2018-01-01,"Uses ""soft"" gates in stress."
+F0100,Riverstone Capital,Fixed Income,Daily,180,0,1%,17.5%,"$3,500,000,000",2020-01-01,Illiquid underlying positions.
+F0101,Everest Associates,Multi-Strategy,Monthly,30,6,1.75%,0%,"$5,000,000",2018-01-01,AUM withheld pending NDA.
+F0102,Echo Group,L/S Equity,Weekly,30,12,1%,10%,"$20,000,000,000",2024-07-01,Seasoned team; stable AUM.
+F0103,Pinnacle Group,L/S Equity,Daily,90,36,1%,30%,"$85,000,000",2021-01-01,Short track record.
+F0104,Zephyr Holdings,Other,Quarterly,15,0,0.5%,10%,"$3,500,000,000",2023-01-01,Seasoned team; stable AUM.
+F0105,Brightwater Asset Management,Relative Value,Monthly,120,0,2.5%,0%,"$1,200,000,000",2020-01-01,Illiquid underlying positions.
+F0106,Summit Asset Management,Multi-Strategy,Weekly,90,24,1.5%,17.5%,"$20,000,000,000",2015-01-01,Seasoned team; stable AUM.
+F0107,Kestrel Global,L/S Equity,Semi-Annual,15,36,1.75%,20%,"$5,000,000",2023-01-01,Short track record.
+F0108,Everest Global,Other,Semi-Annual,120,12,1.75%,10%,"$85,000,000",2021-01-01,Illiquid underlying positions.
+F0109,Westfield Fund,Credit,Daily,120,36,1.25%,10%,"$25,000,000",2022-01-01,Key-person risk on founder.
+F0110,Tideline Capital,Relative Value,Semi-Annual,45,6,1%,10%,"$150,000,000",2022-01-01,"Uses ""soft"" gates in stress."
+F0111,Halcyon Partners,L/S Equity,Weekly,0,0,1.75%,17.5%,"$5,000,000",2024-07-01,AUM withheld pending NDA.
+F0112,Alpha Management,Other,Monthly,45,0,0.5%,17.5%,"$25,000,000",2021-01-01,Illiquid underlying positions.
+F0113,Alpha Associates,Global Macro,Quarterly,120,24,1.25%,15%,"$3,500,000,000",2015-01-01,AUM withheld pending NDA.
+F0114,Tideline Investments,Other,Semi-Annual,30,12,1.5%,20%,"$450,000,000",2023-01-01,
+F0115,Lodestar Macro Fund,L/S Equity,Annual,180,24,1.25%,17.5%,"$3,500,000,000",2023-01-01,"Uses ""soft"" gates in stress."
+F0116,Riverstone Holdings,Relative Value,Annual,15,12,1.25%,17.5%,"$3,500,000,000",2023-07-01,Short track record.
+F0117,Tideline Partners,Other,Annual,5,0,2%,10%,"$85,000,000",2024-07-01,Illiquid underlying positions.
+F0118,Kestrel Capital,CTA / Managed Futures,Annual,120,12,2.5%,17.5%,"$20,000,000,000",2024-07-01,Short track record.
+F0119,Cedar Capital,Global Macro,Weekly,0,0,1.25%,17.5%,"$25,000,000",2024-07-01,
+F0120,Echo Associates,Multi-Strategy,Monthly,5,12,1.25%,0%,"$150,000,000",2020-01-01,Seasoned team; stable AUM.

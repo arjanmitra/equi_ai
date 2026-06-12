@@ -1,0 +1,8 @@
+Fund ID,Fund Name,Strategy,Redemption,Notice (days),Lockup (months),Mgmt Fee,Perf Fee,AUM (USD),Inception,Notes
+F001,Alpha Macro Partners,Global Macro,Monthly,30,12,2%,20%,"$1,200,000,000",2018-01-15,Seasoned macro team; stable AUM.
+F002,Beacon Long/Short Equity,L/S Equity,Quarterly,60,24,1.5%,15%,"$450,000,000",2015-06-01,Key-person risk on founder.
+F003,Cobalt Managed Futures,CTA / Managed Futures,Monthly,30,0,1%,20%,"$85,000,000",2020-03-10,Short track record; new strategy.
+F004,Delta Credit,Credit,Quarterly,90,12,1.75%,17.5%,"$2,100,000,000",2012-09-01,Illiquid underlying positions.
+F005,Echo Multi-Strat,Multi-Strategy,Monthly,45,6,2%,20%,"$760,000,000",2019-11-01,"Diversified, multi-PM book."
+F006,Fjord Market Neutral,Market Neutral,Monthly,15,0,1.25%,15%,"$320,000,000",2017-04-01,Low net exposure.
+F007,Granite Event Driven,Event Driven,Quarterly,60,12,1.5%,20%,"$540,000,000",2014-02-01,Merger-arb concentration.

@@ -1,0 +1,15 @@
+Fund ID,Fund Name,Strategy,Redemption,Notice (days),Lockup (months),Mgmt Fee,Perf Fee,AUM (USD),Inception,Notes
+F0011,Zürich Macro Partners,L/S Equity,Weekly,15,0,1%,15%,"$1,200,000,000",2015-01-01,AUM withheld pending NDA.
+F0012,Crédit Alpha,Multi-Strategy,Quarterly,30,6,1.75%,10%,"$25,000,000",2020-01-01,Concentrated book — top 5 = 60%.
+F0013,São Paulo Capital,Other,Annual,45,0,1%,10%,"$150,000,000",2023-07-01,
+F0014,Müller Global,Credit,Daily,15,36,1%,20%,"$150,000,000",2018-01-01,
+F0021,Quartz Fund,Global Macro,Annual,90,6,2.5%,30%,"$25,000,000",2022-01-01,Short track record.
+F0022,Riverstone Investments,Relative Value,Semi-Annual,45,24,1%,20%,"$1,200,000,000",2023-07-01,Concentrated book — top 5 = 60%.
+F0023,Orion Associates,Global Macro,Monthly,30,12,1.5%,10%,"$25,000,000",2015-01-01,Seasoned team; stable AUM.
+F0024,Northgate Macro Fund,Market Neutral,Annual,15,24,2%,15%,"$3,500,000,000",2024-01-01,
+F0025,Juniper Investments,CTA / Managed Futures,Quarterly,15,24,2.5%,15%,"$20,000,000,000",2023-01-01,AUM withheld pending NDA.
+F0026,Delta Associates,Multi-Strategy,Semi-Annual,120,12,1.25%,15%,"$5,000,000",2024-07-01,Seasoned team; stable AUM.
+F0027,Yarrow Capital,CTA / Managed Futures,Annual,30,36,1.5%,0%,"$25,000,000",2024-01-01,Illiquid underlying positions.
+F0028,Vantage Associates,CTA / Managed Futures,Daily,30,12,2%,20%,"$450,000,000",2023-01-01,"Uses ""soft"" gates in stress."
+F0029,Harbour Investments,Market Neutral,Weekly,60,12,1%,10%,"$1,200,000,000",2024-07-01,Concentrated book — top 5 = 60%.
+F0030,Xenon Partners,L/S Equity,Monthly,180,0,1.75%,0%,"$85,000,000",2024-01-01,Seasoned team; stable AUM.

@@ -1,0 +1,61 @@
+Manager Name	Sub-Strategy	Dealing	Notice Days	Lockup	Mgmt	Perf	Fund Size	Inception Date	Comments
+Vantage Asset Management	managed_futures	Daily	0	0	0.02	0.2	$85M	01/01/2021	Key-person risk on founder.
+Juniper Fund	managed_futures	Annual	180	36	0.02	0.175	$12000M	07/01/2024	Key-person risk on founder.
+Xenon Fund	relative_value	Monthly	60	12	0.0175	0.1	$3500M	01/01/2024	AUM withheld pending NDA.
+Beacon Advisors	fixed_income	Weekly	120	36	0.0125	0.1	$150M	07/01/2024	New PM hired 2023.
+Tideline Credit Opportunities	other	Quarterly	60	0	0.005	0	$12000M	01/01/2018	"Uses ""soft"" gates in stress."
+Halcyon Associates	market_neutral	Quarterly	180	24				07/01/2024	
+Westfield Holdings	multi_strategy	Quarterly	180	0	0.025	0.15	$1200M	01/01/2023	Short track record.
+Westfield Holdings	credit	Monthly	15	0	0.015	0	$20000M	01/01/2015	"Uses ""soft"" gates in stress."
+Tideline Group	market_neutral	Quarterly	5	24	0.0175	0.3	$85M	01/01/2024	Key-person risk on founder.
+Fjord Management	market_neutral	Monthly	45	12	0.025	0.175	$85M	07/01/2023	Illiquid underlying positions.
+Zürich Macro Partners	long_short_equity	Weekly	15	0	0.01	0.15	$1200M	01/01/2015	AUM withheld pending NDA.
+Crédit Alpha	multi_strategy	Quarterly	30	6	0.0175	0.1	$25M	01/01/2020	Concentrated book — top 5 = 60%.
+São Paulo Capital	other	Annual	45	0	0.01	0.1	$150M	07/01/2023	
+Müller Global	credit	Daily	15	36	0.01	0.2	$150M	01/01/2018	
+Ardent Investments	long_short_equity	Weekly	0	0	0.01	0.1	$25M	01/01/2015	Concentrated book — top 5 = 60%.
+Northgate Associates	multi_strategy	Annual	90	36	0.01	0.15	$5M	07/01/2024	Concentrated book — top 5 = 60%.
+Drawbridge Credit Opportunities	other	Annual	15	12	0.015	0.15	$85M	07/01/2024	
+Xenon Investments	fixed_income	Daily	90	12	0.015	0.3	$450M	01/01/2020	
+Pinnacle Associates	event_driven	Weekly	5	0	0.02	0	$150M	01/01/2022	AUM withheld pending NDA.
+Delta Holdings	global_macro	Annual	45	36	0.015	0.175	$1200M	07/01/2023	Key-person risk on founder.
+Quartz Fund	global_macro	Annual	90	6	0.025	0.3	$25M	01/01/2022	Short track record.
+Riverstone Investments	relative_value	Semi-Annual	45	24	0.01	0.2	$1200M	07/01/2023	Concentrated book — top 5 = 60%.
+Orion Associates	global_macro	Monthly	30	12	0.015	0.1	$25M	01/01/2015	Seasoned team; stable AUM.
+Northgate Macro Fund	market_neutral	Annual	15	24	0.02	0.15	$3500M	01/01/2024	
+Juniper Investments	managed_futures	Quarterly	15	24	0.025	0.15	$20000M	01/01/2023	AUM withheld pending NDA.
+Delta Associates	multi_strategy	Semi-Annual	120	12	0.0125	0.15	$5M	07/01/2024	Seasoned team; stable AUM.
+Yarrow Capital	managed_futures	Annual	30	36	0.015	0	$25M	01/01/2024	Illiquid underlying positions.
+Vantage Associates	managed_futures	Daily	30	12	0.02	0.2	$450M	01/01/2023	"Uses ""soft"" gates in stress."
+Harbour Investments	market_neutral	Weekly	60	12	0.01	0.1	$1200M	07/01/2024	Concentrated book — top 5 = 60%.
+Xenon Partners	long_short_equity	Monthly	180	0	0.0175	0	$85M	01/01/2024	Seasoned team; stable AUM.
+Ardent Holdings	multi_strategy	Quarterly	5	12	0.025	0.1	$85M	01/01/2020	Seasoned team; stable AUM.
+Cedar Fund	credit	Semi-Annual	90	0	0.0125	0.2	$450M	07/01/2024	Short track record.
+Delta Partners	multi_strategy	Daily	30	12	0.025	0.15	$150M	01/01/2018	Concentrated book — top 5 = 60%.
+Lodestar Group	credit	Weekly	15	0	0.02	0.175	$12000M	01/01/2020	Key-person risk on founder.
+Delta Strategies	market_neutral	Quarterly	15	12	0.0125	0	$25M	01/01/2022	New PM hired 2023.
+Summit Holdings	fixed_income	Semi-Annual	180	12	0.015	0.2	$20000M	01/01/2020	Concentrated book — top 5 = 60%.
+Umbra Holdings	credit	Weekly	15	6	0.02	0.1	$20000M	01/01/2022	Key-person risk on founder.
+Alpha Fund	global_macro	Annual	45	24	0.0175	0.1	$20000M	01/01/2018	
+Harbour Holdings	fixed_income	Weekly	5	6	0.005	0.2	$85M	01/01/2020	
+Brightwater Holdings	event_driven	Monthly	180	24	0.0175	0.3	$1200M	01/01/2024	
+Cobalt Macro Fund	managed_futures	Annual	45	0	0.005	0	$1200M	01/01/2023	Key-person risk on founder.
+Juniper Partners	market_neutral	Semi-Annual	60	24	0.0175	0.2	$85M	01/01/2015	Concentrated book — top 5 = 60%.
+Quartz Associates	global_macro	Annual	45	0	0.025	0.1	$5M	07/01/2023	Illiquid underlying positions.
+Quartz Capital	other	Quarterly	30	0	0.0125	0.3	$1200M	01/01/2018	Concentrated book — top 5 = 60%.
+Drawbridge Asset Management	multi_strategy	Quarterly	5	36	0.01	0	$5M	01/01/2018	Seasoned team; stable AUM.
+Ironwood Partners	long_short_equity	Annual	5	24	0.0125	0.1	$12000M	07/01/2024	AUM withheld pending NDA.
+Umbra Fund	credit	Weekly	90	0	0.01	0.175	$150M	01/01/2015	Key-person risk on founder.
+Cedar Global	market_neutral	Weekly	15	6	0.02	0.15	$150M	07/01/2024	Concentrated book — top 5 = 60%.
+Echo Asset Management	managed_futures	Monthly	45	6	0.01	0.175	$12000M	07/01/2024	
+Orion Management	managed_futures	Daily	45	0	0.025	0.15	$5M	01/01/2022	Short track record.
+Foxhill Credit Opportunities	managed_futures	Quarterly	45	24	0.005	0.3	$3500M	01/01/2020	"Uses ""soft"" gates in stress."
+Ardent Management	managed_futures	Monthly	180	12	0.015	0.175	$12000M	01/01/2020	AUM withheld pending NDA.
+Lodestar Asset Management	other	Semi-Annual	120	24	0.0175	0	$20000M	01/01/2020	
+Cedar Strategies	global_macro	Annual	120	12	0.01	0.15	$150M	01/01/2023	AUM withheld pending NDA.
+Vantage Group	global_macro	Semi-Annual	15	6	0.015	0	$20000M	01/01/2023	
+Echo Investments	long_short_equity	Monthly	90	36	0.025	0.3	$5M	07/01/2023	Key-person risk on founder.
+Granite Holdings	global_macro	Quarterly	0	0	0.025	0.2	$150M	01/01/2021	Seasoned team; stable AUM.
+Summit Capital	credit	Annual	0	24	0.005	0.1	$12000M	01/01/2021	AUM withheld pending NDA.
+Xenon Holdings	long_short_equity	Annual	5	24	0.0175	0.15	$450M	07/01/2024	Seasoned team; stable AUM.
+Meridian Management	managed_futures	Quarterly	90	36	0.015	0.15	$450M	07/01/2023	New PM hired 2023.
