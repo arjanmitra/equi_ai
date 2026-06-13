@@ -24,7 +24,9 @@ Shows the system holding up at volume, and surfaces its real boundaries.
   returns step you'll see **119 of 120** funds match (two funds, one name → they
   collide). This is the known entity-resolution limit, by design.
 
-- **`optional-adversarial-DESIGNED-TO-FAIL.csv`** — **do not** upload this as a
-  normal input. It has comment-line preamble, duplicate columns, and ragged rows.
-  Upload it *only* to demonstrate that extraction **fails gracefully** (it reports
-  the file couldn't be parsed rather than crashing or inventing data).
+- **`optional-adversarial-DESIGNED-TO-FAIL.csv`** — comment-line preamble,
+  duplicate columns, ragged rows. The name is now a misnomer: with **structure
+  recovery** this file *recovers* instead of failing — it extracts the funds and
+  the validation report lists what it cleaned (preamble skipped, columns
+  de-duplicated, ragged rows reconciled). For a kit built around these features,
+  see **Kit 4 — Robust extraction & the attribute bag.**

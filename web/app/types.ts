@@ -19,6 +19,7 @@ export interface FieldProvenance {
   source: string;
   transform: string | null;
   confidence: number | null;
+  kind: "field" | "extra";
 }
 
 export interface ValidationReport {
@@ -89,6 +90,8 @@ export interface MandateSpec {
   min_track_record_months?: number | null;
   target_volatility?: number | null;
   max_drawdown?: number | null;
+  severities?: Record<string, "hard" | "soft">;
+  penalties?: Record<string, number>;
 }
 
 export type CheckStatus = "pass" | "fail" | "na";
@@ -161,6 +164,7 @@ export interface FundFacts {
   fields: Fact[];
   metrics: Fact[];
   checks: Fact[];
+  attributes: Fact[];
 }
 
 export interface MemoClaimOut {
@@ -214,6 +218,7 @@ export interface SourceFieldOut {
   source: string;
   transform: string | null;
   confidence: number | null;
+  kind: "field" | "extra";
 }
 
 export interface FundMetricsOut {

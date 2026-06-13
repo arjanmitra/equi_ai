@@ -44,3 +44,34 @@ export function strategyLabel(value: string | null | undefined): string {
   if (!value) return "—";
   return STRATEGY_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
+
+// Per-constraint defaults — must mirror engine.py's DEFAULT_SEVERITY / DEFAULT_PENALTY.
+export type Severity = "hard" | "soft";
+
+export const DEFAULT_SEVERITY: Record<string, Severity> = {
+  redemption_frequency: "hard",
+  notice_period: "hard",
+  lockup: "hard",
+  excluded_strategy: "hard",
+  target_volatility: "hard",
+  max_drawdown: "hard",
+  preferred_strategy: "soft",
+  management_fee: "soft",
+  performance_fee: "soft",
+  min_aum: "soft",
+  min_track_record: "soft",
+};
+
+export const DEFAULT_PENALTY: Record<string, number> = {
+  preferred_strategy: 15,
+  management_fee: 10,
+  performance_fee: 10,
+  min_aum: 10,
+  min_track_record: 10,
+  redemption_frequency: 25,
+  notice_period: 25,
+  lockup: 25,
+  excluded_strategy: 25,
+  target_volatility: 25,
+  max_drawdown: 25,
+};

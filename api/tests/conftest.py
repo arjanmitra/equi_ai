@@ -1,22 +1,26 @@
 """Test hygiene: force the deterministic offline paths.
 
-Once an ANTHROPIC_API_KEY is present (e.g. in the repo .env), the engine would
-otherwise call the LLM for column mapping and document extraction. Tests must be
-hermetic and free, so we null out the shared LLM client for every test. The
-offline tabular path (heuristic mapping) is what the suite asserts against; the
-live document path is exercised by scripts/evaluate_corpus.py, not pytest.
+Regardless of what's in the repo `.env`, tests must be hermetic and free:
+  - no LLM calls (null the shared client → tabular heuristic / no document path),
+  - no live market data (force MARKET_DATA=fixture → synthetic benchmarks/rf).
+The live paths are exercised by scripts/evaluate_corpus.py + manual smokes, not
+pytest. `settings` is a frozen dataclass, so we override via object.__setattr__.
 """
 
 from __future__ import annotations
 
 import pytest
 
+from app.config import settings
 from app.extraction.llm import llm
 
 
 @pytest.fixture(autouse=True)
-def _force_offline_llm():
-    saved = llm._client
+def _force_offline(monkeypatch):
+    saved_client = llm._client
+    saved_mode = settings.market_data_mode
     llm._client = None
+    object.__setattr__(settings, "market_data_mode", "fixture")
     yield
-    llm._client = saved
+    llm._client = saved_client
+    object.__setattr__(settings, "market_data_mode", saved_mode)

@@ -5,11 +5,11 @@ from __future__ import annotations
 import csv
 import io
 
-import pandas as pd
 from charset_normalizer import from_bytes
 
 from app.extraction.detect import CSV_MIME
 from app.extraction.loaders.base import TabularContent
+from app.extraction.structure import recover_grid
 
 
 class CsvLoader:
@@ -19,17 +19,14 @@ class CsvLoader:
     def load(self, raw: bytes, filename: str) -> TabularContent:
         text = self._decode(raw)
         sep = self._sniff_delimiter(text)
-        df = pd.read_csv(
-            io.StringIO(text),
-            sep=sep,
-            dtype=str,  # keep raw strings; transforms coerce later
-            keep_default_na=False,
-            skip_blank_lines=True,
-            engine="python",
+        # csv.reader handles quoting; recover_grid finds the real table within
+        # (preamble, blank/ragged rows, duplicate columns) instead of assuming a
+        # clean grid that read_csv would choke on.
+        grid = list(csv.reader(io.StringIO(text), delimiter=sep))
+        df, notes = recover_grid(grid)
+        return TabularContent(
+            source_name=filename, df=df, extra={"structure_notes": notes}
         )
-        df = df.dropna(axis=1, how="all")
-        df.columns = [str(c).strip() for c in df.columns]
-        return TabularContent(source_name=filename, df=df)
 
     @staticmethod
     def _decode(raw: bytes) -> str:

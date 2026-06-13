@@ -132,6 +132,9 @@ class SourceField(Base):
     source: Mapped[str] = mapped_column(String)  # e.g. "column: Mgmt Fee"
     transform: Mapped[str | None] = mapped_column(String, nullable=True)
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # "field" = mapped canonical value (trusted); "extra" = unmapped reported
+    # attribute (never feeds metrics/constraints). See FieldProvenance.kind.
+    kind: Mapped[str] = mapped_column(String, default="field")
 
     fund: Mapped[Fund] = relationship(back_populates="source_fields")
 

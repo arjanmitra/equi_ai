@@ -11,7 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FREQUENCY_OPTIONS, STRATEGY_OPTIONS } from "../constants";
+import { cn } from "@/lib/utils";
+import {
+  DEFAULT_PENALTY,
+  DEFAULT_SEVERITY,
+  FREQUENCY_OPTIONS,
+  STRATEGY_OPTIONS,
+  type Severity,
+} from "../constants";
 import type { MandateSpec } from "../types";
 
 const numOrNull = (s: string): number | null =>
@@ -25,8 +32,11 @@ const millionsToUsd = (s: string): number | null => {
   return n === null ? null : n * 1_000_000;
 };
 
-/** Controlled mandate inputs. Emits the built MandateSpec on every change; the
- *  parent (modal or wizard) owns the submit chrome. */
+type SevMap = Record<string, Severity>;
+type PenMap = Record<string, number>;
+
+/** Controlled mandate inputs, incl. per-constraint hard/soft + penalty. Emits
+ *  the built MandateSpec (with severities/penalties maps) on every change. */
 export function MandateFields({
   onChange,
 }: {
@@ -45,6 +55,11 @@ export function MandateFields({
   const [targetVol, setTargetVol] = useState("");
   const [maxDd, setMaxDd] = useState("");
 
+  const [sev, setSevState] = useState<SevMap>({ ...DEFAULT_SEVERITY });
+  const [pen, setPenState] = useState<PenMap>({ ...DEFAULT_PENALTY });
+  const setSev = (cid: string, v: Severity) => setSevState((p) => ({ ...p, [cid]: v }));
+  const setPen = (cid: string, v: number) => setPenState((p) => ({ ...p, [cid]: v }));
+
   useEffect(() => {
     onChange({
       label: label || null,
@@ -59,17 +74,21 @@ export function MandateFields({
       min_track_record_months: numOrNull(trackRecord),
       target_volatility: pctToDecimal(targetVol),
       max_drawdown: pctToDecimal(maxDd),
+      severities: sev,
+      penalties: pen,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [label, redemption, notice, lockup, mgmtFee, perfFee, preferred, excluded, minAum, trackRecord, targetVol, maxDd]);
+  }, [label, redemption, notice, lockup, mgmtFee, perfFee, preferred, excluded, minAum, trackRecord, targetVol, maxDd, sev, pen]);
 
   const toggle = (list: string[], v: string) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 
+  const sp = { sev, pen, setSev, setPen };
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <Group title="Liquidity (hard)">
-        <Field label="Need at least this redemption frequency">
+      <Group title="Liquidity">
+        <ConstraintField label="Need at least this redemption frequency" cid="redemption_frequency" {...sp}>
           <Select value={redemption} onValueChange={setRedemption}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -79,53 +98,60 @@ export function MandateFields({
               ))}
             </SelectContent>
           </Select>
-        </Field>
-        <Field label="Max notice period (days)">
+        </ConstraintField>
+        <ConstraintField label="Max notice period (days)" cid="notice_period" {...sp}>
           <Input type="number" value={notice} onChange={(e) => setNotice(e.target.value)} placeholder="e.g. 60" />
-        </Field>
-        <Field label="Max lockup (months)">
+        </ConstraintField>
+        <ConstraintField label="Max lockup (months)" cid="lockup" {...sp}>
           <Input type="number" value={lockup} onChange={(e) => setLockup(e.target.value)} placeholder="e.g. 12" />
-        </Field>
+        </ConstraintField>
       </Group>
 
-      <Group title="Fees (soft)">
-        <Field label="Max management fee (%)">
+      <Group title="Fees">
+        <ConstraintField label="Max management fee (%)" cid="management_fee" {...sp}>
           <Input type="number" value={mgmtFee} onChange={(e) => setMgmtFee(e.target.value)} placeholder="e.g. 1.8" />
-        </Field>
-        <Field label="Max performance fee (%)">
+        </ConstraintField>
+        <ConstraintField label="Max performance fee (%)" cid="performance_fee" {...sp}>
           <Input type="number" value={perfFee} onChange={(e) => setPerfFee(e.target.value)} placeholder="e.g. 20" />
-        </Field>
+        </ConstraintField>
       </Group>
 
-      <Group title="Strategy" hint="Exclusions are hard; preferences are soft.">
-        <p className="mb-1 text-xs font-medium text-muted-foreground">Preferred</p>
+      <Group title="Strategy" hint="Defaults: preferences soft, exclusions hard.">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium text-muted-foreground">Preferred</p>
+          <SevToggle cid="preferred_strategy" {...sp} />
+        </div>
         <StrategyChecks selected={preferred} onToggle={(v) => setPreferred(toggle(preferred, v))} idPrefix="pref" />
-        <p className="mb-1 mt-3 text-xs font-medium text-muted-foreground">Excluded</p>
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-xs font-medium text-muted-foreground">Excluded</p>
+          <SevToggle cid="excluded_strategy" {...sp} />
+        </div>
         <StrategyChecks selected={excluded} onToggle={(v) => setExcluded(toggle(excluded, v))} idPrefix="excl" />
       </Group>
 
-      <Group title="Size & track record (soft)">
-        <Field label="Min AUM ($M)">
+      <Group title="Size & track record">
+        <ConstraintField label="Min AUM ($M)" cid="min_aum" {...sp}>
           <Input type="number" value={minAum} onChange={(e) => setMinAum(e.target.value)} placeholder="e.g. 100" />
-        </Field>
-        <Field label="Min track record (months)">
+        </ConstraintField>
+        <ConstraintField label="Min track record (months)" cid="min_track_record" {...sp}>
           <Input type="number" value={trackRecord} onChange={(e) => setTrackRecord(e.target.value)} placeholder="e.g. 36" />
-        </Field>
+        </ConstraintField>
       </Group>
 
       <Group title="Risk" hint="Evaluated against computed volatility & drawdown.">
-        <Field label="Target volatility (%)">
+        <ConstraintField label="Target volatility (%)" cid="target_volatility" {...sp}>
           <Input type="number" value={targetVol} onChange={(e) => setTargetVol(e.target.value)} placeholder="e.g. 10" />
-        </Field>
-        <Field label="Max drawdown (%)">
+        </ConstraintField>
+        <ConstraintField label="Max drawdown (%)" cid="max_drawdown" {...sp}>
           <Input type="number" value={maxDd} onChange={(e) => setMaxDd(e.target.value)} placeholder="e.g. 20" />
-        </Field>
+        </ConstraintField>
       </Group>
 
       <Group title="Label">
-        <Field label="Mandate name (optional)">
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Mandate name (optional)</Label>
           <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Liquid macro sleeve" />
-        </Field>
+        </div>
       </Group>
     </div>
   );
@@ -141,11 +167,59 @@ function Group({ title, hint, children }: { title: string; hint?: string; childr
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+interface SP {
+  sev: SevMap;
+  pen: PenMap;
+  setSev: (cid: string, v: Severity) => void;
+  setPen: (cid: string, v: number) => void;
+}
+
+function ConstraintField({
+  label,
+  cid,
+  children,
+  ...sp
+}: { label: string; cid: string; children: React.ReactNode } & SP) {
   return (
     <div className="space-y-1">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-xs text-muted-foreground">{label}</Label>
+        <SevToggle cid={cid} {...sp} />
+      </div>
       {children}
+    </div>
+  );
+}
+
+function SevToggle({ cid, sev, pen, setSev, setPen }: { cid: string } & SP) {
+  const s = sev[cid];
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="inline-flex overflow-hidden rounded border text-[11px] leading-none">
+        <button
+          type="button"
+          onClick={() => setSev(cid, "hard")}
+          className={cn("px-1.5 py-1", s === "hard" ? "bg-brand-green text-white" : "text-muted-foreground hover:bg-secondary")}
+        >
+          Hard
+        </button>
+        <button
+          type="button"
+          onClick={() => setSev(cid, "soft")}
+          className={cn("px-1.5 py-1", s === "soft" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary")}
+        >
+          Soft
+        </button>
+      </div>
+      {s === "soft" && (
+        <input
+          type="number"
+          value={pen[cid]}
+          onChange={(e) => setPen(cid, Number(e.target.value))}
+          title="penalty points if missed"
+          className="h-6 w-12 rounded border bg-background px-1 text-[11px] tabular-nums focus:outline-none focus:ring-1 focus:ring-ring"
+        />
+      )}
     </div>
   );
 }

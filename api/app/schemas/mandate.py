@@ -8,6 +8,8 @@ them as `na` ("pending metrics") for now.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.schemas.fund import RedemptionFrequency, Strategy
@@ -44,3 +46,10 @@ class MandateSpec(BaseModel):
     max_drawdown: float | None = Field(
         default=None, ge=0, description="Max acceptable peak-to-trough drawdown."
     )
+
+    # --- Per-constraint policy overrides (keyed by ConstraintId value) ---
+    # Severity: whether a violation eliminates ("hard") or just penalizes
+    # ("soft"). Penalty: the soft-violation score deduction (out of 100).
+    # Both fall back to the engine's defaults when a constraint is absent.
+    severities: dict[str, Literal["hard", "soft"]] = Field(default_factory=dict)
+    penalties: dict[str, float] = Field(default_factory=dict)

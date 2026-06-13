@@ -3,11 +3,11 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { strategyLabel } from "../constants";
+import { Badge } from "@/components/ui/badge";
+import { DEFAULT_PENALTY, DEFAULT_SEVERITY, strategyLabel } from "../constants";
 import type { MandateOut, MandateSpec } from "../types";
 
 export function MandateView({ mandate }: { mandate: MandateOut }) {
@@ -20,7 +20,8 @@ export function MandateView({ mandate }: { mandate: MandateOut }) {
           {mandate.label ?? "Mandate"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Created {new Date(mandate.created_at).toLocaleString()}
+          Created {new Date(mandate.created_at).toLocaleString()} · each rule
+          shows its severity (hard = eliminates, soft = penalty).
         </p>
       </div>
 
@@ -28,19 +29,19 @@ export function MandateView({ mandate }: { mandate: MandateOut }) {
         {groups.map((g) => (
           <Card key={g.title}>
             <CardHeader>
-              <CardTitle className="text-base text-brand-green">
-                {g.title}
-              </CardTitle>
-              <CardDescription>{g.severity}</CardDescription>
+              <CardTitle className="text-base text-brand-green">{g.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {g.rows.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Not constrained</p>
               ) : (
                 g.rows.map((r) => (
-                  <div key={r.label} className="flex items-center justify-between text-sm">
+                  <div key={r.cid} className="flex items-center justify-between gap-2 text-sm">
                     <span className="text-muted-foreground">{r.label}</span>
-                    <span className="font-medium tabular-nums">{r.value}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium tabular-nums">{r.value}</span>
+                      <SeverityChip spec={mandate.spec} cid={r.cid} />
+                    </span>
                   </div>
                 ))
               )}
@@ -52,60 +53,61 @@ export function MandateView({ mandate }: { mandate: MandateOut }) {
   );
 }
 
-type Row = { label: string; value: React.ReactNode };
+function SeverityChip({ spec, cid }: { spec: MandateSpec; cid: string }) {
+  const severity = spec.severities?.[cid] ?? DEFAULT_SEVERITY[cid];
+  const penalty = spec.penalties?.[cid] ?? DEFAULT_PENALTY[cid];
+  if (severity === "hard") return <Badge variant="secondary">hard</Badge>;
+  return <Badge variant="outline">soft · −{penalty}</Badge>;
+}
+
+type Row = { label: string; value: React.ReactNode; cid: string };
 
 function constraintGroups(s: MandateSpec) {
   const pct = (v?: number | null) => (v == null ? null : `${(v * 100).toFixed(2)}%`);
   const money = (v?: number | null) =>
     v == null ? null : `$${(v / 1_000_000).toLocaleString()}M`;
-  const strat = (arr: string[]) =>
-    arr.length ? arr.map(strategyLabel).join(", ") : null;
+  const strat = (arr: string[]) => (arr.length ? arr.map(strategyLabel).join(", ") : null);
 
-  const rows = (entries: [string, React.ReactNode | null][]): Row[] =>
+  const rows = (entries: [string, React.ReactNode | null, string][]): Row[] =>
     entries
       .filter(([, v]) => v !== null && v !== undefined && v !== "")
-      .map(([label, value]) => ({ label, value }));
+      .map(([label, value, cid]) => ({ label, value, cid }));
 
   return [
     {
       title: "Liquidity",
-      severity: "Hard constraints",
       rows: rows([
-        ["Min redemption frequency", s.max_redemption_frequency ?? null],
-        ["Max notice (days)", s.max_notice_period_days ?? null],
-        ["Max lockup (months)", s.max_lockup_months ?? null],
+        ["Min redemption frequency", s.max_redemption_frequency ?? null, "redemption_frequency"],
+        ["Max notice (days)", s.max_notice_period_days ?? null, "notice_period"],
+        ["Max lockup (months)", s.max_lockup_months ?? null, "lockup"],
       ]),
     },
     {
       title: "Fees",
-      severity: "Soft constraints",
       rows: rows([
-        ["Max management fee", pct(s.max_management_fee)],
-        ["Max performance fee", pct(s.max_performance_fee)],
+        ["Max management fee", pct(s.max_management_fee), "management_fee"],
+        ["Max performance fee", pct(s.max_performance_fee), "performance_fee"],
       ]),
     },
     {
       title: "Strategy",
-      severity: "Exclusions hard · preferences soft",
       rows: rows([
-        ["Preferred", strat(s.preferred_strategies)],
-        ["Excluded", strat(s.excluded_strategies)],
+        ["Preferred", strat(s.preferred_strategies), "preferred_strategy"],
+        ["Excluded", strat(s.excluded_strategies), "excluded_strategy"],
       ]),
     },
     {
       title: "Size & track record",
-      severity: "Soft constraints",
       rows: rows([
-        ["Min AUM", money(s.min_aum_usd)],
-        ["Min track record (months)", s.min_track_record_months ?? null],
+        ["Min AUM", money(s.min_aum_usd), "min_aum"],
+        ["Min track record (months)", s.min_track_record_months ?? null, "min_track_record"],
       ]),
     },
     {
       title: "Risk",
-      severity: "Hard · needs computed metrics",
       rows: rows([
-        ["Target volatility", pct(s.target_volatility)],
-        ["Max drawdown", pct(s.max_drawdown)],
+        ["Target volatility", pct(s.target_volatility), "target_volatility"],
+        ["Max drawdown", pct(s.max_drawdown), "max_drawdown"],
       ]),
     },
   ];

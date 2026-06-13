@@ -12,7 +12,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-FactKind = Literal["field", "metric", "check", "mandate"]
+FactKind = Literal["field", "metric", "check", "mandate", "attribute"]
 
 
 class Fact(BaseModel):
@@ -37,6 +37,7 @@ class FundFacts(BaseModel):
     fields: list[Fact]
     metrics: list[Fact]
     checks: list[Fact]
+    attributes: list[Fact] = Field(default_factory=list)
 
 
 class Catalog(BaseModel):

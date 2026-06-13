@@ -27,6 +27,10 @@ Absolute rules:
 3. Use values as shown (you may round sensibly). Never write a number that does
    not appear in a fact you cite.
 4. Be concise and decision-useful — a ~1 page memo, one sentence per claim.
+5. Some funds carry "attributes (as reported)" — values the source provided that
+   we did NOT compute or verify. You may cite them, but always attribute them to
+   the manager/source (e.g. "the manager reports …"), never present them as our
+   computed metrics, and never use them to override a constraint check.
 
 Produce three sections:
 - summary: the mandate being evaluated and the headline recommendation.
@@ -54,6 +58,7 @@ def render_catalog(catalog: Catalog) -> str:
             ("fields", ff.fields),
             ("metrics", ff.metrics),
             ("checks", ff.checks),
+            ("attributes (as reported by source — NOT computed/verified)", ff.attributes),
         ):
             if not facts:
                 continue

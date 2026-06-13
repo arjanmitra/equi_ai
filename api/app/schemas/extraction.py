@@ -9,7 +9,7 @@ audit trail does not have to reverse-engineer it.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -46,6 +46,15 @@ class FieldProvenance(BaseModel):
         default=None, description="Transform applied, if any."
     )
     confidence: float | None = None
+    kind: Literal["field", "extra"] = Field(
+        default="field",
+        description=(
+            "'field' = mapped onto a canonical schema field (trusted, feeds "
+            "metrics/constraints). 'extra' = an unmapped source column captured "
+            "verbatim as a reported attribute — never feeds computation, but is "
+            "displayed and citable."
+        ),
+    )
 
 
 class ValidationReport(BaseModel):

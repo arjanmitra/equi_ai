@@ -92,28 +92,55 @@ export function ExtractedData({ funds }: { funds: FundOut[] }) {
 
 function ProvenanceList({ items }: { items?: SourceFieldOut[] }) {
   if (!items) return <p className="py-2 text-xs text-muted-foreground">Loading…</p>;
+  const fields = items.filter((p) => p.kind !== "extra");
+  const extras = items.filter((p) => p.kind === "extra");
+
   return (
-    <table className="w-full text-xs">
-      <thead>
-        <tr className="text-left text-muted-foreground">
-          <th className="py-1 pr-3 font-medium">field</th>
-          <th className="py-1 pr-3 font-medium">raw → normalized</th>
-          <th className="py-1 pr-3 font-medium">source</th>
-          <th className="py-1 font-medium">transform</th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((p) => (
-          <tr key={p.id}>
-            <td className="py-0.5 pr-3 font-medium">{p.target_field}</td>
-            <td className="py-0.5 pr-3">
-              <span className="text-muted-foreground">{cell(p.raw_value)}</span> → {cell(p.normalized_value)}
-            </td>
-            <td className="py-0.5 pr-3 text-muted-foreground">{p.source}</td>
-            <td className="py-0.5 text-muted-foreground">{p.transform ?? "—"}</td>
+    <div className="space-y-3">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-left text-muted-foreground">
+            <th className="py-1 pr-3 font-medium">field</th>
+            <th className="py-1 pr-3 font-medium">raw → normalized</th>
+            <th className="py-1 pr-3 font-medium">source</th>
+            <th className="py-1 font-medium">transform</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {fields.map((p) => (
+            <tr key={p.id}>
+              <td className="py-0.5 pr-3 font-medium">{p.target_field}</td>
+              <td className="py-0.5 pr-3">
+                <span className="text-muted-foreground">{cell(p.raw_value)}</span> → {cell(p.normalized_value)}
+              </td>
+              <td className="py-0.5 pr-3 text-muted-foreground">{p.source}</td>
+              <td className="py-0.5 text-muted-foreground">{p.transform ?? "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {extras.length > 0 && (
+        <div className="rounded-md border border-dashed bg-background/60 p-2">
+          <p className="mb-1 text-xs font-medium text-brand-green">
+            Additional attributes{" "}
+            <span className="font-normal text-muted-foreground">
+              (as reported — not validated, never used in metrics or constraints)
+            </span>
+          </p>
+          <table className="w-full text-xs">
+            <tbody>
+              {extras.map((p) => (
+                <tr key={p.id}>
+                  <td className="py-0.5 pr-3 font-medium">{p.target_field}</td>
+                  <td className="py-0.5 pr-3">{cell(p.normalized_value)}</td>
+                  <td className="py-0.5 text-muted-foreground">{p.source}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }

@@ -31,6 +31,10 @@ def mandate_id(name: str) -> str:
     return f"mandate:{name}"
 
 
+def attribute_id(fund_id: str, name: str) -> str:
+    return f"attribute:{fund_id}:{name}"
+
+
 # --- Display formatting -----------------------------------------------------
 def _pct(v: Any) -> str:
     return f"{v * 100:.1f}%" if isinstance(v, (int, float)) else str(v)
@@ -130,6 +134,8 @@ def _field_facts(fund: models.Fund) -> list[Fact]:
     facts: list[Fact] = []
     seen: set[str] = set()
     for sf in fund.source_fields:
+        if sf.kind == "extra":
+            continue  # reported attributes are catalogued separately
         if sf.target_field in seen:
             continue
         seen.add(sf.target_field)
@@ -145,6 +151,36 @@ def _field_facts(fund: models.Fund) -> list[Fact]:
                 fund_id=fund.id,
                 provenance=sf.source,
                 extra={"raw": sf.raw_value},
+            )
+        )
+    return facts
+
+
+def _attribute_facts(fund: models.Fund) -> list[Fact]:
+    """Unmapped source columns, captured verbatim as citable-but-untrusted facts.
+
+    These never inform metrics or constraint checks — they only exist so a memo
+    can quote a fund-described stat ("the manager reports a 0.6 Sortino") while
+    still tracing it to the exact source column. Deduped by column, first value
+    wins; empty values were already dropped at capture time.
+    """
+    facts: list[Fact] = []
+    seen: set[str] = set()
+    for sf in fund.source_fields:
+        if sf.kind != "extra" or sf.target_field in seen:
+            continue
+        seen.add(sf.target_field)
+        facts.append(
+            Fact(
+                id=attribute_id(fund.id, sf.target_field),
+                kind="attribute",
+                name=sf.target_field,
+                label=sf.target_field,
+                value=sf.normalized_value,
+                display=_ident(sf.normalized_value),
+                fund_id=fund.id,
+                provenance=sf.source,
+                extra={"raw": sf.raw_value, "as_reported": True},
             )
         )
     return facts
@@ -241,13 +277,14 @@ def build_catalog(run: models.MandateRun) -> Catalog:
         fields = _field_facts(fund)
         metrics = _metric_facts(fund)
         checks = _check_facts(fund, ev)
-        for f in (*fields, *metrics, *checks):
+        attributes = _attribute_facts(fund)
+        for f in (*fields, *metrics, *checks, *attributes):
             index[f.id] = f
         funds.append(
             FundFacts(
                 fund_id=fund.id, fund_name=fund.name, business_key=fund.business_key,
                 rank=rank, passed=ev.passed, score=ev.score,
-                fields=fields, metrics=metrics, checks=checks,
+                fields=fields, metrics=metrics, checks=checks, attributes=attributes,
             )
         )
 

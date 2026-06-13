@@ -33,7 +33,8 @@ create duplicate funds.
 |---|---|---|---|
 | `1-quickstart/` | 5 | ✅ | **The full lifecycle**, small enough to read — incl. a live risk-constraint exclusion and a clean, grounded memo. **Start here.** |
 | `2-format-gallery/` | 7 | ❌ | **Input-format breadth** — clean CSV, messy CSV, XLSX, HTML email, and two **PDF factsheets** (the LLM document path). Metrics stay "pending" (no returns provided). |
-| `3-scale-and-edge-cases/` | 120 | ✅ | **Scale + edge cases** — 120 funds with full return histories: a −92% drawdown fund, zero-volatility fund, low-confidence (short-history) flags, an unmatched fund, and a file that fails extraction on purpose. |
+| `3-scale-and-edge-cases/` | 120 | ✅ | **Scale + edge cases** — 120 funds with full return histories: a −92% drawdown fund, zero-volatility fund, low-confidence (short-history) flags, an unmatched fund, and a deliberately adversarial file. |
+| `4-robust-extraction/` | 6 | ✅ | **Robustness** — structure recovery (preamble, blank/ragged rows, duplicate columns, header-not-in-row-0, in both CSV and XLSX) and the **attribute bag** (unmapped columns captured as source-attributed, untrusted, citable-but-never-computed attributes). |
 
 ## Running the app
 

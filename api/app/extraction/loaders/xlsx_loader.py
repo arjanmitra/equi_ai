@@ -14,6 +14,7 @@ import pandas as pd
 
 from app.extraction.detect import XLSX_MIME
 from app.extraction.loaders.base import TabularContent
+from app.extraction.structure import recover_grid
 
 
 class XlsxLoader:
@@ -23,17 +24,23 @@ class XlsxLoader:
         )
 
     def load(self, raw: bytes, filename: str) -> TabularContent:
-        book = pd.read_excel(io.BytesIO(raw), sheet_name=None, dtype=str)
+        # header=None: read every sheet as a raw grid so recover_grid (not
+        # pandas' fixed row-0 assumption) decides where the header lives.
+        book = pd.read_excel(io.BytesIO(raw), sheet_name=None, dtype=str, header=None)
         sheet_names = list(book.keys())
         # First sheet that actually has rows.
-        chosen, df = next(
+        chosen, raw_df = next(
             ((name, d) for name, d in book.items() if not d.dropna(how="all").empty),
             (sheet_names[0], book[sheet_names[0]]),
         )
-        df = df.dropna(axis=1, how="all").fillna("")
-        df.columns = [str(c).strip() for c in df.columns]
+        grid = raw_df.where(pd.notna(raw_df), None).values.tolist()
+        df, notes = recover_grid(grid)
         return TabularContent(
             source_name=f"{filename}#{chosen}",
             df=df,
-            extra={"sheet": chosen, "other_sheets": [s for s in sheet_names if s != chosen]},
+            extra={
+                "sheet": chosen,
+                "other_sheets": [s for s in sheet_names if s != chosen],
+                "structure_notes": notes,
+            },
         )

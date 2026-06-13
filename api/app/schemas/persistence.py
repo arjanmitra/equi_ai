@@ -18,6 +18,7 @@ class SourceFieldOut(BaseModel):
     source: str
     transform: str | None
     confidence: float | None
+    kind: str = "field"
 
 
 class FundOut(BaseModel):

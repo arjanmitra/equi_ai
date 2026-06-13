@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -155,22 +155,32 @@ function Appendix({ funds }: { funds: FundFacts[] }) {
           </TableHeader>
           <TableBody>
             {funds.map((ff) => (
-              <TableRow key={ff.fund_id}>
-                <TableCell>{ff.rank}</TableCell>
-                <TableCell className="font-medium">{ff.fund_name}</TableCell>
-                <TableCell>
-                  <Badge variant={ff.passed ? "success" : "destructive"}>
-                    {ff.passed ? "Shortlisted" : "Excluded"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {get(ff.fields, "strategy")}
-                </TableCell>
-                <TableCell className="text-right tabular-nums">{get(ff.fields, "aum_usd")}</TableCell>
-                <TableCell className="text-right tabular-nums">{get(ff.metrics, "annualized_volatility")}</TableCell>
-                <TableCell className="text-right tabular-nums">{get(ff.metrics, "sharpe")}</TableCell>
-                <TableCell className="text-right tabular-nums">{get(ff.metrics, "max_drawdown")}</TableCell>
-              </TableRow>
+              <Fragment key={ff.fund_id}>
+                <TableRow>
+                  <TableCell>{ff.rank}</TableCell>
+                  <TableCell className="font-medium">{ff.fund_name}</TableCell>
+                  <TableCell>
+                    <Badge variant={ff.passed ? "success" : "destructive"}>
+                      {ff.passed ? "Shortlisted" : "Excluded"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {get(ff.fields, "strategy")}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{get(ff.fields, "aum_usd")}</TableCell>
+                  <TableCell className="text-right tabular-nums">{get(ff.metrics, "annualized_volatility")}</TableCell>
+                  <TableCell className="text-right tabular-nums">{get(ff.metrics, "sharpe")}</TableCell>
+                  <TableCell className="text-right tabular-nums">{get(ff.metrics, "max_drawdown")}</TableCell>
+                </TableRow>
+                {ff.attributes.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="py-1.5 text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">As reported:</span>{" "}
+                      {ff.attributes.map((a) => `${a.label} ${a.display}`).join(" · ")}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </Fragment>
             ))}
           </TableBody>
         </Table>

@@ -88,6 +88,11 @@ def map_tabular(
     df = content.df
     report = ValidationReport(total_rows=len(df), unmapped_columns=plan.unmapped_columns)
 
+    # Surface what structure recovery did to the raw grid (preamble skipped,
+    # ragged rows reconciled, columns de-duplicated) so it's visible + auditable.
+    for note in content.extra.get("structure_notes", []):
+        report.add(IssueLevel.INFO, f"structure: {note}")
+
     valid_mappings = [m for m in plan.mappings if m.source_column in df.columns]
     for m in plan.mappings:
         if m.source_column not in df.columns:
@@ -97,11 +102,27 @@ def map_tabular(
                 field=m.target_field,
             )
 
+    # Columns the plan didn't map become the source-attributed "attribute bag":
+    # captured verbatim per row as kind="extra" provenance so they're displayed
+    # and citable, but they never reach a Fund field and so never feed
+    # metrics/constraints. This preserves the trust wall while stopping silent
+    # data loss of fund-describing stats we don't have a canonical slot for.
+    mapped_cols = {m.source_column for m in valid_mappings}
+    extra_cols = [c for c in df.columns if c not in mapped_cols]
+    if extra_cols:
+        report.add(
+            IssueLevel.INFO,
+            "captured "
+            f"{len(extra_cols)} unmapped column(s) as reported attributes: "
+            f"{', '.join(map(str, extra_cols))}",
+        )
+
     records: list[dict] = []
     provenance: list[FieldProvenance] = []
 
     for index, (_, row) in enumerate(df.iterrows()):
         record_dict, row_prov = _build_row(row, valid_mappings, index, report)
+        row_prov.extend(_extra_attributes(row, extra_cols, index))
         instance, error = coerce_record(record_dict, target)
         if instance is None:
             report.records_failed += 1
@@ -131,6 +152,36 @@ def map_tabular(
         provenance=provenance,
         report=report,
     )
+
+
+def _extra_attributes(
+    row: pd.Series, extra_cols: list[str], index: int
+) -> list[FieldProvenance]:
+    """Capture unmapped columns verbatim as kind='extra' provenance.
+
+    No transform is applied and the value never lands in a record dict — these
+    are untrusted, as-reported attributes, attributed to their source column.
+    Empty cells are skipped so the bag stays meaningful.
+    """
+    out: list[FieldProvenance] = []
+    for col in extra_cols:
+        raw = row[col]
+        if pd.isna(raw) or str(raw).strip() == "":
+            continue
+        value = str(raw).strip()
+        out.append(
+            FieldProvenance(
+                record_index=index,
+                target_field=str(col),
+                raw_value=value,
+                normalized_value=value,  # verbatim; no coercion
+                source=f"column: {col}",
+                transform=None,
+                confidence=None,
+                kind="extra",
+            )
+        )
+    return out
 
 
 def _build_row(

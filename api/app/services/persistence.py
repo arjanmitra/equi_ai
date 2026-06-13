@@ -84,6 +84,7 @@ def save_extraction(
                     source=prov.source,
                     transform=prov.transform,
                     confidence=prov.confidence,
+                    kind=prov.kind,
                 )
             )
 

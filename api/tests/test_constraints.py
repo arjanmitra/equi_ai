@@ -152,6 +152,43 @@ def test_low_confidence_metrics_are_not_enforced():
     assert ev.passed is True
 
 
+def test_softening_a_hard_constraint_keeps_the_fund():
+    # 90-day notice > 60 normally eliminates (hard); soften it -> penalty, not death.
+    m = MandateSpec(
+        max_notice_period_days=60,
+        severities={"notice_period": "soft"},
+        penalties={"notice_period": 7},
+    )
+    ev = evaluate(make_fund(notice_period_days=90), m, today=TODAY)
+    c = _check(ev, ConstraintId.NOTICE_PERIOD)
+    assert c.severity is Severity.SOFT and c.status is CheckStatus.FAIL
+    assert c.penalty == 7.0
+    assert ev.passed is True and ev.score == pytest.approx(93.0)
+
+
+def test_hardening_a_soft_constraint_eliminates():
+    # Fee over ceiling is normally soft; harden it -> elimination, no penalty.
+    m = MandateSpec(max_management_fee=0.01, severities={"management_fee": "hard"})
+    ev = evaluate(make_fund(management_fee=0.02), m, today=TODAY)
+    c = _check(ev, ConstraintId.MANAGEMENT_FEE)
+    assert c.severity is Severity.HARD and c.status is CheckStatus.FAIL
+    assert c.penalty == 0.0
+    assert ev.passed is False
+
+
+def test_custom_penalty_overrides_default():
+    m = MandateSpec(max_management_fee=0.01, penalties={"management_fee": 30})
+    ev = evaluate(make_fund(management_fee=0.02), m, today=TODAY)
+    assert _check(ev, ConstraintId.MANAGEMENT_FEE).penalty == pytest.approx(30.0)
+    assert ev.score == pytest.approx(70.0)
+
+
+def test_defaults_apply_when_no_overrides():
+    m = MandateSpec(max_management_fee=0.01)
+    c = _check(evaluate(make_fund(management_fee=0.02), m, today=TODAY), ConstraintId.MANAGEMENT_FEE)
+    assert c.severity is Severity.SOFT and c.penalty == pytest.approx(10.0)
+
+
 def test_score_clamps_and_sums_penalties():
     m = MandateSpec(
         preferred_strategies=["credit"],   # -15
