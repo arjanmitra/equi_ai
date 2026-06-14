@@ -1,49 +1,49 @@
 # Demo data — what to upload, and when
 
-These are ready-to-use sample bundles for driving the app end to end. Each
-numbered folder is a **self-contained kit** — open it, read its one-line
-`README`, and upload the files it contains.
+Ready-to-use sample bundles for driving the app end to end. Each numbered folder
+is a **self-contained kit**. Open the folder, read its short `README`, and upload
+the files it lists.
 
 ## The one rule to remember
 
 > **Returns attach to funds by matching the fund _name_.** A returns file only
-> works with a universe file that contains the same fund names. The three kits
-> use **different fund names**, so never mix files across kits.
+> works with a universe file that has the same fund names. Each kit uses
+> **different fund names**, so never mix files across kits.
 
-Funds come *only* from the universe (the first file you upload). Returns files
-just add monthly observations to funds that already exist — so uploading several
-returns files together is always safe; uploading several *universe* files would
-create duplicate funds.
+The **universe** file is where funds come from. **Returns** files just add monthly
+history to funds that already exist.
 
-## The upload order (same for every kit)
+## How to upload (the New Analysis wizard)
 
-1. **Upload the universe file** → click **Extract**.
-2. **Attach the returns file(s)** → click **Attach returns**.
-3. Click **Compute metrics**.
-4. Fill the **Mandate** form → click **Evaluate funds**.
-5. Click **Generate IC memo**, then click any citation chip to see it trace back
-   to a metric or the original source column. Download as PDF/DOCX.
+Everything happens in one flow. Click **New analysis** (top-right), then:
 
-(Steps 2–3 are optional — without returns, the risk metrics simply show as
-"pending / n/a". Steps 1, 4, 5 still work.)
+1. **Step 1 — Upload data.** Choose the kit's **universe** file under *Fund
+   universe*, and its **returns** file(s) under *Monthly returns (optional)*.
+   Click **Continue**.
+2. **Step 2 — Review mapping.** Confirm (or edit) how each source column maps to
+   the canonical schema; the preview updates live. Click **Looks good — continue**.
+3. **Step 3 — Choose a mandate.** Pick an existing one, or **Create new mandate**
+   (each kit suggests one). Click **Continue**.
+4. **Step 4 — Review evaluation.** See the ranked shortlist. Click **Generate IC
+   Memo** — you land on the analysis, the memo generates, and citation chips trace
+   each claim back to a metric or source column.
+
+> Returns are optional. Without them, the risk metrics (volatility, drawdown,
+> Sharpe) simply show as "pending / n/a" and those constraints report as not
+> evaluated. Steps still complete.
 
 ## The kits
 
-| Folder | Funds | Returns? | What it shows |
+| Folder | Universe file(s) | Returns file(s) | What it shows |
 |---|---|---|---|
-| `1-quickstart/` | 5 | ✅ | **The full lifecycle**, small enough to read — incl. a live risk-constraint exclusion and a clean, grounded memo. **Start here.** |
-| `2-format-gallery/` | 7 | ❌ | **Input-format breadth** — clean CSV, messy CSV, XLSX, HTML email, and two **PDF factsheets** (the LLM document path). Metrics stay "pending" (no returns provided). |
-| `3-scale-and-edge-cases/` | 120 | ✅ | **Scale + edge cases** — 120 funds with full return histories: a −92% drawdown fund, zero-volatility fund, low-confidence (short-history) flags, an unmatched fund, and a deliberately adversarial file. |
-| `4-robust-extraction/` | 6 | ✅ | **Robustness** — structure recovery (preamble, blank/ragged rows, duplicate columns, header-not-in-row-0, in both CSV and XLSX) and the **attribute bag** (unmapped columns captured as source-attributed, untrusted, citable-but-never-computed attributes). |
+| **`1-quickstart/`** | `universe.csv` (5 funds) | all 3 `returns-*.csv` | **Start here.** The full lifecycle, small enough to read every number, with a live risk-constraint exclusion and a grounded memo. |
+| **`2-format-gallery/`** | each file, **one at a time** | _(none)_ | Input-format breadth: clean CSV, messy CSV, XLSX, HTML email, and two PDF factsheets (the LLM document path). |
+| **`3-scale-and-edge-cases/`** | `universe.csv` (120 funds) | `returns.csv` + `returns-messy.csv` | Scale + edge cases: extreme drawdown, zero-volatility, low-confidence flags, an unmatched fund, duplicate names. |
+| **`4-robust-extraction/`** | one of the `universe-*` files (or `managers-messy.xlsx`) | `returns.csv` | Robustness: structure recovery (preamble, ragged rows, duplicate columns) and the attribute bag (unmapped columns kept as untrusted, citable attributes). |
 
-## Running the app
+## Notes
 
-```bash
-# backend
-cd api && .venv/bin/uvicorn app.main:app --port 8000
-# frontend (separate terminal)
-cd web && npm run dev
-```
-
-The PDF (document) path and memo generation need an `ANTHROPIC_API_KEY` in a
-`.env` (repo root or `api/`). Everything else works without one.
+- **Uploading multiple *universe* files at once creates duplicate funds** — upload
+  one universe per analysis. Multiple *returns* files together is always fine.
+- The **PDF (document) path** and **memo generation** need an `ANTHROPIC_API_KEY`
+  (in `.env` at the repo root or `api/`). Everything else works without one.
