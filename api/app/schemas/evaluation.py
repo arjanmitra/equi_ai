@@ -43,7 +43,9 @@ class CheckStatus(str, Enum):
 
 
 class ConstraintCheck(BaseModel):
-    constraint: ConstraintId
+    # str (not ConstraintId) so user-defined custom-constraint ids fit alongside
+    # the canonical enum values.
+    constraint: str
     severity: Severity
     status: CheckStatus
     actual: Any | None = None

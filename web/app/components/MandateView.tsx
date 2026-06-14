@@ -7,7 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DEFAULT_PENALTY, DEFAULT_SEVERITY, strategyLabel } from "../constants";
+import {
+  DEFAULT_PENALTY,
+  DEFAULT_SEVERITY,
+  operatorSymbol,
+  strategyLabel,
+} from "../constants";
 import type { MandateOut, MandateSpec } from "../types";
 
 export function MandateView({ mandate }: { mandate: MandateOut }) {
@@ -48,6 +53,36 @@ export function MandateView({ mandate }: { mandate: MandateOut }) {
             </CardContent>
           </Card>
         ))}
+
+        {(mandate.spec.custom_constraints?.length ?? 0) > 0 && (
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base text-brand-green">
+                Custom attribute rules
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {mandate.spec.custom_constraints!.map((c) => (
+                <div key={c.id} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-muted-foreground">
+                    {c.label}{" "}
+                    <span className="text-xs">(reported · {c.value_type})</span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-medium tabular-nums">
+                      {operatorSymbol(c.operator)} {String(c.threshold)}
+                    </span>
+                    {c.severity === "hard" ? (
+                      <Badge variant="secondary">hard</Badge>
+                    ) : (
+                      <Badge variant="outline">soft · −{c.penalty}</Badge>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -40,6 +40,21 @@ export const CONSTRAINT_LABELS: Record<string, string> = {
   max_drawdown: "Max drawdown",
 };
 
+// Generic operators for promoted-attribute (custom) constraints.
+export const OPERATOR_OPTIONS: { value: string; label: string; numeric: boolean }[] = [
+  { value: "gte", label: "≥ (at least)", numeric: true },
+  { value: "lte", label: "≤ (at most)", numeric: true },
+  { value: "gt", label: "> (greater than)", numeric: true },
+  { value: "lt", label: "< (less than)", numeric: true },
+  { value: "eq", label: "= (equals)", numeric: false },
+  { value: "neq", label: "≠ (not equals)", numeric: false },
+  { value: "contains", label: "contains", numeric: false },
+];
+
+export function operatorSymbol(value: string): string {
+  return { gte: "≥", lte: "≤", gt: ">", lt: "<", eq: "=", neq: "≠", contains: "contains" }[value] ?? value;
+}
+
 export function strategyLabel(value: string | null | undefined): string {
   if (!value) return "—";
   return STRATEGY_OPTIONS.find((o) => o.value === value)?.label ?? value;

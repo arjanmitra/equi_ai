@@ -47,7 +47,7 @@ Hard rules:
 """
 
 
-def _column_samples(content: TabularContent) -> dict[str, list[str]]:
+def column_samples(content: TabularContent) -> dict[str, list[str]]:
     """Column -> a few non-empty sample values, for value-aware transform guess."""
     rows = content.sample_rows(settings.mapping_sample_rows)
     return {
@@ -56,9 +56,9 @@ def _column_samples(content: TabularContent) -> dict[str, list[str]]:
     }
 
 
-def _get_plan(content: TabularContent, target: type[BaseModel]) -> tuple[MappingPlan, str]:
-    """Return (plan, source_label). Falls back to the heuristic when offline."""
-    samples = _column_samples(content)
+def _infer_plan(content: TabularContent, target: type[BaseModel]) -> tuple[MappingPlan, str]:
+    """Return (plan, source_label) from the LLM, or the heuristic when offline."""
+    samples = column_samples(content)
     if not llm.available:
         return heuristic_plan(content.columns, target, samples), "heuristic"
 
@@ -81,20 +81,34 @@ def _get_plan(content: TabularContent, target: type[BaseModel]) -> tuple[Mapping
         return heuristic_plan(content.columns, target, samples), "heuristic-fallback"
 
 
+def resolve_plan(
+    content: TabularContent,
+    target: type[BaseModel],
+    override: MappingPlan | None = None,
+) -> tuple[MappingPlan, str]:
+    """The plan to apply: a user-supplied override (review step) wins; otherwise
+    infer one. Centralized so the preview endpoint and the committer agree."""
+    if override is not None:
+        return override, "user-edited"
+    return _infer_plan(content, target)
+
+
 def map_tabular(
-    content: TabularContent, target: type[BaseModel]
+    content: TabularContent,
+    target: type[BaseModel],
+    plan: MappingPlan | None = None,
 ) -> ExtractionResult:
-    plan, plan_source = _get_plan(content, target)
+    plan_obj, plan_source = resolve_plan(content, target, plan)
     df = content.df
-    report = ValidationReport(total_rows=len(df), unmapped_columns=plan.unmapped_columns)
+    report = ValidationReport(total_rows=len(df))
 
     # Surface what structure recovery did to the raw grid (preamble skipped,
     # ragged rows reconciled, columns de-duplicated) so it's visible + auditable.
     for note in content.extra.get("structure_notes", []):
         report.add(IssueLevel.INFO, f"structure: {note}")
 
-    valid_mappings = [m for m in plan.mappings if m.source_column in df.columns]
-    for m in plan.mappings:
+    valid_mappings = [m for m in plan_obj.mappings if m.source_column in df.columns]
+    for m in plan_obj.mappings:
         if m.source_column not in df.columns:
             report.add(
                 IssueLevel.INFO,
@@ -109,6 +123,7 @@ def map_tabular(
     # data loss of fund-describing stats we don't have a canonical slot for.
     mapped_cols = {m.source_column for m in valid_mappings}
     extra_cols = [c for c in df.columns if c not in mapped_cols]
+    report.unmapped_columns = list(extra_cols)
     if extra_cols:
         report.add(
             IssueLevel.INFO,

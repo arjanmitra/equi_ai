@@ -23,8 +23,15 @@ const STATUS_VARIANT: Record<CheckStatus, BadgeVariant> = {
   na: "secondary",
 };
 
+// A fund whose every constraint check is na — the mandate couldn't judge it on
+// anything, so it's kept off the shortlist, but distinct from a fund excluded
+// for a hard violation.
+function isNotEvaluated(e: FundEvaluationOut): boolean {
+  return e.checks.length > 0 && e.checks.every((c) => c.status === "na");
+}
+
 export function RunResults({ run }: { run: RunOut }) {
-  const passed = run.evaluations.filter((e) => e.passed).length;
+  const passed = run.evaluations.filter((e) => e.passed && !isNotEvaluated(e)).length;
 
   return (
     <Card>
@@ -35,13 +42,18 @@ export function RunResults({ run }: { run: RunOut }) {
         </span>
       </CardHeader>
       <CardContent className="space-y-2">
-        {run.evaluations.map((e, i) => (
+        {run.evaluations.map((e, i) => {
+          const notEvaluated = isNotEvaluated(e);
+          const shortlisted = e.passed && !notEvaluated;
+          return (
           <div key={e.fund_id} className="rounded-lg border p-3">
             <div className="flex items-center gap-3">
               <span className="w-6 text-sm text-muted-foreground">#{i + 1}</span>
               <span className="flex-1 font-medium">{e.fund_name}</span>
-              <Badge variant={e.passed ? "success" : "destructive"}>
-                {e.passed ? "Shortlisted" : "Excluded"}
+              <Badge
+                variant={shortlisted ? "success" : notEvaluated ? "secondary" : "destructive"}
+              >
+                {shortlisted ? "Shortlisted" : notEvaluated ? "Not evaluated" : "Excluded"}
               </Badge>
               <ScoreBar score={e.score} />
             </div>
@@ -59,7 +71,8 @@ export function RunResults({ run }: { run: RunOut }) {
               </ul>
             </details>
           </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );
@@ -78,7 +91,9 @@ function MetricsLine({ e }: { e: FundEvaluationOut }) {
 }
 
 function CheckRow({ check }: { check: ConstraintCheck }) {
-  const label = CONSTRAINT_LABELS[check.constraint] ?? check.constraint;
+  const label = check.constraint.startsWith("custom:")
+    ? "Custom rule"
+    : CONSTRAINT_LABELS[check.constraint] ?? check.constraint;
   return (
     <li className="flex flex-wrap items-center gap-2">
       <Badge variant={STATUS_VARIANT[check.status]}>{check.status}</Badge>

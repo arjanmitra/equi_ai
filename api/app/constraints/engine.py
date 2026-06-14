@@ -30,7 +30,7 @@ from app.schemas.evaluation import (
     FundEvaluation,
     Severity,
 )
-from app.schemas.mandate import MandateSpec
+from app.schemas.mandate import CustomConstraint, MandateSpec
 
 # Lower = more liquid. Compares a fund's redemption frequency against the
 # least-liquid frequency the mandate will accept.
@@ -276,13 +276,89 @@ def _check_max_dd(mandate: MandateSpec, metrics) -> ConstraintCheck | None:
                             else f"max drawdown {abs(mdd):.1%} exceeds the {tol:.1%} tolerance"))
 
 
+# --- Promoted attributes (generic, user-defined rules) ----------------------
+_OP_TEXT = {
+    "gte": "≥", "lte": "≤", "gt": ">", "lt": "<", "eq": "=", "neq": "≠",
+    "contains": "contains",
+}
+
+
+def _to_number(v) -> float | None:
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip().replace(",", "").replace("$", "").replace("%", "")
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+def _apply_number(op: str, a: float, b: float) -> bool:
+    return {
+        "gte": a >= b, "lte": a <= b, "gt": a > b, "lt": a < b,
+        "eq": a == b, "neq": a != b, "contains": str(b) in str(a),
+    }[op]
+
+
+def _apply_text(op: str, a: str, b: str) -> bool:
+    a, b = a.strip().lower(), b.strip().lower()
+    return {"eq": a == b, "neq": a != b, "contains": b in a}.get(op, False)
+
+
+def _check_custom(cc: CustomConstraint, attributes: dict[str, str]) -> ConstraintCheck:
+    """Judge one promoted-attribute rule. Untrusted source: the reason always
+    says 'reported', and a missing/uncoercible value is na (never a failure)."""
+    sev = Severity(cc.severity)
+    fields = [f"attribute: {cc.attribute}"]
+    raw = attributes.get(cc.attribute)
+    op_txt = _OP_TEXT.get(cc.operator, cc.operator)
+
+    if raw is None or str(raw).strip() == "":
+        return ConstraintCheck(
+            constraint=cc.id, severity=sev, status=CheckStatus.NA,
+            threshold=cc.threshold, source_fields=fields,
+            reason=f"reported {cc.label} not available for this fund",
+        )
+
+    if cc.value_type == "number":
+        actual = _to_number(raw)
+        thr = _to_number(cc.threshold)
+        if actual is None or thr is None:
+            return ConstraintCheck(
+                constraint=cc.id, severity=sev, status=CheckStatus.NA,
+                actual=raw, threshold=cc.threshold, source_fields=fields,
+                reason=f"reported {cc.label} '{raw}' is not numeric — not enforced",
+            )
+        ok = _apply_number(cc.operator, actual, thr)
+        actual_disp, thr_disp = actual, thr
+    else:
+        ok = _apply_text(cc.operator, str(raw), str(cc.threshold))
+        actual_disp, thr_disp = raw, cc.threshold
+
+    return ConstraintCheck(
+        constraint=cc.id, severity=sev,
+        status=CheckStatus.PASS if ok else CheckStatus.FAIL,
+        penalty=float(cc.penalty) if (sev is Severity.SOFT and not ok) else 0.0,
+        actual=actual_disp, threshold=thr_disp, source_fields=fields,
+        reason=(
+            f"reported {cc.label} {actual_disp} meets the rule ({op_txt} {thr_disp})"
+            if ok else
+            f"reported {cc.label} {actual_disp} fails the rule ({op_txt} {thr_disp})"
+        ),
+    )
+
+
 def evaluate(
     fund: FundView,
     mandate: MandateSpec,
     metrics=None,
     today: date | None = None,
+    attributes: dict[str, str] | None = None,
 ) -> FundEvaluation:
     today = today or date.today()
+    attributes = attributes or {}
 
     maybe = [
         _check_redemption(fund, mandate),
@@ -298,7 +374,13 @@ def evaluate(
         _check_max_dd(mandate, metrics),
     ]
     checks = [c for c in maybe if c is not None]
+    checks += [_check_custom(cc, attributes) for cc in mandate.custom_constraints]
 
+    # `passed` = no hard violation. na never eliminates (missing != wrong). The
+    # degenerate "every check is na" case (e.g. a fund whose data didn't extract)
+    # is not treated as a failure here — it's surfaced as "not evaluated" at the
+    # presentation layer (serialize_run / UI), which keeps it off the shortlist
+    # without stamping it as failed.
     passed = not any(
         c.severity is Severity.HARD and c.status is CheckStatus.FAIL for c in checks
     )

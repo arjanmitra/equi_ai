@@ -40,6 +40,63 @@ export interface ExtractionResult {
   report: ValidationReport;
 }
 
+// --- Mapping review (plan / preview step) ----------------------------------
+
+export type Transform =
+  | "none"
+  | "percent_to_decimal"
+  | "bps_to_decimal"
+  | "strip_currency"
+  | "parse_date"
+  | "parse_int"
+  | "parse_float";
+
+export interface ColumnMap {
+  source_column: string;
+  target_field: string;
+  transform: Transform;
+  confidence?: number | null;
+  reasoning?: string | null;
+}
+
+export interface MappingPlan {
+  mappings: ColumnMap[];
+  unmapped_columns: string[];
+}
+
+export interface PlanFile {
+  filename: string;
+  strategy: "tabular" | "document" | "none";
+  plan: MappingPlan | null;
+  columns: string[];
+  column_samples: Record<string, string[]>;
+  preview: Record<string, unknown>[];
+  structure_notes: string[];
+  issues: FieldIssue[];
+}
+
+export interface PlanResponse {
+  files: PlanFile[];
+}
+
+export interface FieldSpec {
+  name: string;
+  type: string;
+  required: boolean;
+  description?: string | null;
+  enum_values?: string[] | null;
+}
+
+export interface TransformOption {
+  value: string;
+  label: string;
+}
+
+export interface SchemaResponse {
+  target_fields: FieldSpec[];
+  transforms: TransformOption[];
+}
+
 // --- Mandate + run ---------------------------------------------------------
 
 export type View =
@@ -77,6 +134,19 @@ export interface MemoSummary {
   label: string | null;
 }
 
+export type Operator = "gte" | "lte" | "gt" | "lt" | "eq" | "neq" | "contains";
+
+export interface CustomConstraint {
+  id: string;
+  label: string;
+  attribute: string;
+  value_type: "number" | "text";
+  operator: Operator;
+  threshold: number | string;
+  severity: "hard" | "soft";
+  penalty: number;
+}
+
 export interface MandateSpec {
   label?: string | null;
   max_redemption_frequency?: string | null;
@@ -92,6 +162,7 @@ export interface MandateSpec {
   max_drawdown?: number | null;
   severities?: Record<string, "hard" | "soft">;
   penalties?: Record<string, number>;
+  custom_constraints?: CustomConstraint[];
 }
 
 export type CheckStatus = "pass" | "fail" | "na";

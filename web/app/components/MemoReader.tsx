@@ -133,6 +133,8 @@ function ClaimView({
 function Appendix({ funds }: { funds: FundFacts[] }) {
   const get = (list: Fact[], name: string) =>
     list.find((f) => f.name === name)?.display ?? "—";
+  const notEvaluated = (ff: FundFacts) =>
+    ff.checks.length > 0 && ff.checks.every((c) => c.extra?.status === "na");
 
   return (
     <details className="mt-6" open>
@@ -160,9 +162,15 @@ function Appendix({ funds }: { funds: FundFacts[] }) {
                   <TableCell>{ff.rank}</TableCell>
                   <TableCell className="font-medium">{ff.fund_name}</TableCell>
                   <TableCell>
-                    <Badge variant={ff.passed ? "success" : "destructive"}>
-                      {ff.passed ? "Shortlisted" : "Excluded"}
-                    </Badge>
+                    {(() => {
+                      const ne = notEvaluated(ff);
+                      const shortlisted = ff.passed && !ne;
+                      return (
+                        <Badge variant={shortlisted ? "success" : ne ? "secondary" : "destructive"}>
+                          {shortlisted ? "Shortlisted" : ne ? "Not evaluated" : "Excluded"}
+                        </Badge>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {get(ff.fields, "strategy")}

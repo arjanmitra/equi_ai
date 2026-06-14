@@ -24,7 +24,12 @@ _MISSING = {"", "na", "n/a", "nan", "none", "null", "-"}
 
 
 def _cell(v: Any) -> str:
-    return "" if v is None else str(v).strip()
+    # NaN (from xlsx empty cells read as float) must normalize to empty, not the
+    # string "nan" — otherwise blank rows look filled and a title row can be
+    # mistaken for the header.
+    if v is None or (isinstance(v, float) and pd.isna(v)):
+        return ""
+    return str(v).strip()
 
 
 def _is_number(s: str) -> bool:

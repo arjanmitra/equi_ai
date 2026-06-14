@@ -15,7 +15,12 @@ from sqlalchemy.orm import Session
 
 from app.constraints import evaluate
 from app.db import models
-from app.schemas.evaluation import ConstraintCheck, FundEvaluationOut, RunOut
+from app.schemas.evaluation import (
+    CheckStatus,
+    ConstraintCheck,
+    FundEvaluationOut,
+    RunOut,
+)
 from app.schemas.mandate import MandateSpec
 
 
@@ -42,9 +47,15 @@ def run_mandate(
         select(models.Fund).where(models.Fund.upload_id == upload_id)
     ).all()
     for fund in funds:
-        # The engine reads attributes by name, so the ORM Fund + FundMetrics
+        # The engine reads canonical fields by name, so the ORM Fund + FundMetrics
         # work directly. Metrics activate the risk constraints (else they're na).
-        ev = evaluate(fund, spec, metrics=fund.metrics, today=today)
+        # Promoted-attribute rules read the captured attribute bag (kind="extra"),
+        # matched by name; first value wins.
+        attributes: dict[str, str] = {}
+        for sf in fund.source_fields:
+            if sf.kind == "extra" and sf.target_field not in attributes:
+                attributes[sf.target_field] = sf.normalized_value
+        ev = evaluate(fund, spec, metrics=fund.metrics, today=today, attributes=attributes)
         db.add(
             models.FundEvaluation(
                 mandate_run_id=run.id,
@@ -77,9 +88,19 @@ def serialize_run(run: models.MandateRun) -> RunOut:
                 max_drawdown=m.max_drawdown if m else None,
             )
         )
-    # Shortlist on top: passed first, then score, then Sharpe as a tiebreak.
+    # Shortlist on top. A fund whose every check is na ("not evaluated") is kept
+    # off the shortlist — passing by absence of signal isn't a confident pick —
+    # so it sorts with the non-passers, below the genuinely shortlisted funds.
+    def shortlisted(e: FundEvaluationOut) -> bool:
+        all_na = bool(e.checks) and all(c.status is CheckStatus.NA for c in e.checks)
+        return e.passed and not all_na
+
     evaluations.sort(
-        key=lambda e: (e.passed, e.score, e.sharpe if e.sharpe is not None else float("-inf")),
+        key=lambda e: (
+            shortlisted(e),
+            e.score,
+            e.sharpe if e.sharpe is not None else float("-inf"),
+        ),
         reverse=True,
     )
     return RunOut(

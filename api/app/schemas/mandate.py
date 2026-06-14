@@ -14,6 +14,28 @@ from pydantic import BaseModel, Field
 
 from app.schemas.fund import RedemptionFrequency, Strategy
 
+Operator = Literal["gte", "lte", "gt", "lt", "eq", "neq", "contains"]
+
+
+class CustomConstraint(BaseModel):
+    """A user-defined rule over a *promoted attribute* — a column we captured in
+    the attribute bag (as-reported, untrusted) that the allocator has chosen to
+    constrain on. The value is coerced to the declared type and judged by a
+    generic operator; it never touches the hand-tuned canonical checks or the
+    computed metrics. The check's reason always flags it as manager-reported."""
+
+    id: str = Field(description="Stable id within the mandate, e.g. 'custom:sortino'.")
+    label: str = Field(description="Human label, usually the attribute name.")
+    attribute: str = Field(
+        description="Source attribute/column name to read, as captured in the "
+        "attribute bag (matched by name on each fund)."
+    )
+    value_type: Literal["number", "text"] = "number"
+    operator: Operator
+    threshold: float | str
+    severity: Literal["hard", "soft"] = "soft"
+    penalty: float = Field(default=10.0, ge=0)
+
 
 class MandateSpec(BaseModel):
     label: str | None = Field(default=None, description="Human label for the mandate.")
@@ -53,3 +75,8 @@ class MandateSpec(BaseModel):
     # Both fall back to the engine's defaults when a constraint is absent.
     severities: dict[str, Literal["hard", "soft"]] = Field(default_factory=dict)
     penalties: dict[str, float] = Field(default_factory=dict)
+
+    # --- Promoted attributes (Layer 2): generic rules over attribute-bag
+    # columns. Carry their own severity/penalty (self-contained, not in the
+    # maps above). Missing/uncoercible attribute on a fund -> na. ---
+    custom_constraints: list[CustomConstraint] = Field(default_factory=list)

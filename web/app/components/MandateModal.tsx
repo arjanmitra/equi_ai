@@ -35,10 +35,12 @@ export function MandateModal({
   open,
   onOpenChange,
   onSaved,
+  attributeSuggestions = [],
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSaved: (m: MandateOut) => void;
+  attributeSuggestions?: string[];
 }) {
   const [spec, setSpec] = useState<MandateSpec>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -67,7 +69,7 @@ export function MandateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[88vh] max-w-7xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>New mandate</DialogTitle>
           <DialogDescription>
@@ -76,7 +78,7 @@ export function MandateModal({
           </DialogDescription>
         </DialogHeader>
 
-        <MandateFields onChange={setSpec} />
+        <MandateFields onChange={setSpec} attributeSuggestions={attributeSuggestions} />
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 

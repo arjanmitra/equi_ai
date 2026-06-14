@@ -16,9 +16,18 @@ from app.extraction.loaders import route
 from app.extraction.loaders.base import TabularContent
 from app.extraction.mapping import map_document, map_tabular
 from app.schemas.extraction import ExtractionResult, IssueLevel, ValidationReport
+from app.schemas.mapping import MappingPlan
 
 
-def extract(raw: bytes, filename: str, target: type[BaseModel]) -> ExtractionResult:
+def extract(
+    raw: bytes,
+    filename: str,
+    target: type[BaseModel],
+    plan: MappingPlan | None = None,
+) -> ExtractionResult:
+    """Run a file through the pipeline. An optional `plan` (from the mapping-
+    review step) overrides the inferred column→field mapping on the tabular path;
+    it is applied deterministically, with no LLM call."""
     try:
         mime, loader = route(raw, filename)
         content = loader.load(raw, filename)
@@ -33,7 +42,7 @@ def extract(raw: bytes, filename: str, target: type[BaseModel]) -> ExtractionRes
         )
 
     if isinstance(content, TabularContent):
-        result = map_tabular(content, target)
+        result = map_tabular(content, target, plan=plan)
     else:
         result = map_document(content, target)
 

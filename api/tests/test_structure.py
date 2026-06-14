@@ -72,6 +72,23 @@ def test_empty_grid_degrades_gracefully():
     assert notes  # explains why
 
 
+def test_nan_cells_treated_as_empty():
+    # xlsx empty cells arrive as float NaN; they must not look like filled cells,
+    # else a title row is mistaken for the header (regression: managers-messy.xlsx).
+    nan = float("nan")
+    grid = [
+        ["Confidential — manager universe", nan, nan],
+        [nan, nan, nan],  # fully blank row
+        ["Name", "Strategy", "AUM"],
+        ["Alpha", "Macro", "$1B"],
+    ]
+    df, notes = recover_grid(grid)
+    assert list(df.columns) == ["Name", "Strategy", "AUM"]
+    assert df.shape == (1, 3)
+    assert any("preamble" in n for n in notes)
+    assert any("blank" in n for n in notes)
+
+
 # --- end-to-end through extract -------------------------------------------
 
 def test_adversarial_file_recovers_not_none():

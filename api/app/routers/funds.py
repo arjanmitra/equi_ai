@@ -36,6 +36,21 @@ def list_funds(upload_id: str, db: Session = Depends(get_db)) -> list[models.Fun
     )
 
 
+@router.get("/uploads/{upload_id}/attributes", response_model=list[str])
+def list_attributes(upload_id: str, db: Session = Depends(get_db)) -> list[str]:
+    """Distinct attribute-bag column names captured for this upload — used to
+    suggest promotable attributes when defining a custom mandate rule."""
+    if db.get(models.Upload, upload_id) is None:
+        raise HTTPException(404, "upload not found")
+    rows = db.scalars(
+        select(models.SourceField.target_field)
+        .join(models.Fund, models.SourceField.fund_id == models.Fund.id)
+        .where(models.Fund.upload_id == upload_id, models.SourceField.kind == "extra")
+        .distinct()
+    )
+    return sorted(set(rows))
+
+
 @router.get("/funds/{fund_id}/provenance", response_model=list[SourceFieldOut])
 def fund_provenance(
     fund_id: str, db: Session = Depends(get_db)

@@ -212,7 +212,12 @@ def _metric_facts(fund: models.Fund) -> list[Fact]:
     return facts
 
 
-def _check_facts(fund: models.Fund, ev: models.FundEvaluation) -> list[Fact]:
+def _check_facts(
+    fund: models.Fund,
+    ev: models.FundEvaluation,
+    label_overrides: dict[str, str] | None = None,
+) -> list[Fact]:
+    labels = {**_CONSTRAINT_LABELS, **(label_overrides or {})}
     facts: list[Fact] = []
     for c in ev.checks_json or []:
         cid = c["constraint"]
@@ -221,7 +226,7 @@ def _check_facts(fund: models.Fund, ev: models.FundEvaluation) -> list[Fact]:
                 id=check_id(fund.id, cid),
                 kind="check",
                 name=cid,
-                label=_CONSTRAINT_LABELS.get(cid, cid),
+                label=labels.get(cid, cid),
                 value=c["status"],
                 display=c["reason"],
                 fund_id=fund.id,
@@ -254,15 +259,32 @@ def _mandate_facts(spec: dict) -> list[Fact]:
                      label=key.replace("_", " ").title(), value=vals,
                      display=", ".join(vals), provenance="mandate")
             )
+    # Promoted-attribute rules: surface each as a mandate fact so the memo can
+    # state the rule. Flagged as based on a reported attribute.
+    _ops = {"gte": "≥", "lte": "≤", "gt": ">", "lt": "<", "eq": "=", "neq": "≠", "contains": "contains"}
+    for cc in spec.get("custom_constraints") or []:
+        op = _ops.get(cc.get("operator"), cc.get("operator"))
+        facts.append(
+            Fact(
+                id=mandate_id(cc["id"]), kind="mandate", name=cc["id"],
+                label=f"{cc['label']} rule (reported)",
+                value=cc.get("threshold"),
+                display=f"reported {cc['label']} {op} {cc.get('threshold')} ({cc.get('severity')})",
+                provenance="mandate",
+            )
+        )
     return facts
 
 
 def build_catalog(run: models.MandateRun) -> Catalog:
     index: dict[str, Fact] = {}
 
-    mandate_facts = _mandate_facts(run.mandate.spec_json or {})
+    spec = run.mandate.spec_json or {}
+    mandate_facts = _mandate_facts(spec)
     for f in mandate_facts:
         index[f.id] = f
+
+    custom_labels = {cc["id"]: cc["label"] for cc in spec.get("custom_constraints") or []}
 
     def rank_key(ev: models.FundEvaluation):
         m = ev.fund.metrics
@@ -276,7 +298,7 @@ def build_catalog(run: models.MandateRun) -> Catalog:
         fund = ev.fund
         fields = _field_facts(fund)
         metrics = _metric_facts(fund)
-        checks = _check_facts(fund, ev)
+        checks = _check_facts(fund, ev, custom_labels)
         attributes = _attribute_facts(fund)
         for f in (*fields, *metrics, *checks, *attributes):
             index[f.id] = f
